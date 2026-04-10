@@ -21,9 +21,9 @@ export default function SignUpPage() {
   return (
     <div className="auth-page">
       {/* Brand Panel */}
-      <div className="auth-brand-panel">
-        <MetaballBackground backgroundColor="#080808" color="#1a2230" dotCount={8} />
-        <div style={{ position: "absolute", inset: 0, background: "radial-gradient(circle at 70% 60%, rgba(139,92,246,0.06) 0%, transparent 60%)", pointerEvents: "none" }} />
+      <div className="auth-brand-panel" style={{ background: "#FFFFFF" }}>
+        <MetaballBackground backgroundColor="#FFFFFF" color="#E5E7EB" dotCount={8} />
+        <div style={{ position: "absolute", inset: 0, background: "radial-gradient(circle at 70% 60%, rgba(139,92,246,0.05) 0%, transparent 60%)", pointerEvents: "none" }} />
         
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -32,11 +32,11 @@ export default function SignUpPage() {
           style={{ position: "relative", zIndex: 10, display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", gap: 24 }}
         >
           <Link href="/" style={{ textDecoration: "none" }}>
-            <h1 style={{ fontFamily: "'Outfit', sans-serif", fontSize: "3.5rem", fontWeight: 700, color: "#fff", letterSpacing: "-2px", lineHeight: 1 }}>
+            <h1 style={{ fontFamily: "'Outfit', sans-serif", fontSize: "3.5rem", fontWeight: 700, color: "#111", letterSpacing: "-2px", lineHeight: 1 }}>
               Flowra
             </h1>
           </Link>
-          <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "1.1rem", maxWidth: 340, lineHeight: 1.6 }}>
+          <p style={{ color: "#6B7280", fontSize: "1.1rem", maxWidth: 340, lineHeight: 1.6 }}>
             Join teams that ship faster with AI-powered Agile automation.
           </p>
 
@@ -53,10 +53,10 @@ export default function SignUpPage() {
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.5 + i * 0.1 }}
-                style={{ padding: "18px 16px", borderRadius: 14, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", textAlign: "center" }}
+                style={{ padding: "18px 16px", borderRadius: 14, background: "#f9fafb", border: "1px solid #f3f4f6", textAlign: "center" }}
               >
-                <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: "1.5rem", fontWeight: 700, color: "#fff", letterSpacing: "-1px" }}>{stat.value}</div>
-                <div style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.4)", fontWeight: 500, marginTop: 2 }}>{stat.label}</div>
+                <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: "1.5rem", fontWeight: 700, color: "#111", letterSpacing: "-1px" }}>{stat.value}</div>
+                <div style={{ fontSize: "0.75rem", color: "#6B7280", fontWeight: 500, marginTop: 2 }}>{stat.label}</div>
               </motion.div>
             ))}
           </div>

@@ -18,9 +18,9 @@ export default function LoginPage() {
   return (
     <div className="auth-page">
       {/* Brand Panel */}
-      <div className="auth-brand-panel">
-        <MetaballBackground backgroundColor="#080808" color="#1a2a22" dotCount={8} />
-        <div style={{ position: "absolute", inset: 0, background: "radial-gradient(circle at 30% 40%, rgba(16,185,129,0.08) 0%, transparent 60%)", pointerEvents: "none" }} />
+      <div className="auth-brand-panel" style={{ background: "#FFFFFF" }}>
+        <MetaballBackground backgroundColor="#FFFFFF" color="#E5E7EB" dotCount={8} />
+        <div style={{ position: "absolute", inset: 0, background: "radial-gradient(circle at 30% 40%, rgba(16,185,129,0.06) 0%, transparent 60%)", pointerEvents: "none" }} />
         
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -29,11 +29,11 @@ export default function LoginPage() {
           style={{ position: "relative", zIndex: 10, display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", gap: 24 }}
         >
           <Link href="/" style={{ textDecoration: "none" }}>
-            <h1 style={{ fontFamily: "'Outfit', sans-serif", fontSize: "3.5rem", fontWeight: 700, color: "#fff", letterSpacing: "-2px", lineHeight: 1 }}>
+            <h1 style={{ fontFamily: "'Outfit', sans-serif", fontSize: "3.5rem", fontWeight: 700, color: "#111", letterSpacing: "-2px", lineHeight: 1 }}>
               Flowra
             </h1>
           </Link>
-          <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "1.1rem", maxWidth: 340, lineHeight: 1.6 }}>
+          <p style={{ color: "#6B7280", fontSize: "1.1rem", maxWidth: 340, lineHeight: 1.6 }}>
             AI-powered Agile orchestration that keeps your Jira board perfectly in sync.
           </p>
 
@@ -50,10 +50,10 @@ export default function LoginPage() {
                 transition={{ delay: 0.4 + i * 0.15 }}
                 style={{ display: "flex", alignItems: "center", gap: 14, textAlign: "left" }}
               >
-                <div style={{ width: 40, height: 40, borderRadius: 10, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.1rem", flexShrink: 0 }}>
+                <div style={{ width: 40, height: 40, borderRadius: 10, background: "#f9fafb", border: "1px solid #f3f4f6", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.1rem", flexShrink: 0 }}>
                   {item.icon}
                 </div>
-                <span style={{ color: "rgba(255,255,255,0.6)", fontSize: "0.9rem", fontWeight: 500 }}>{item.text}</span>
+                <span style={{ color: "#6B7280", fontSize: "0.9rem", fontWeight: 500 }}>{item.text}</span>
               </motion.div>
             ))}
           </div>

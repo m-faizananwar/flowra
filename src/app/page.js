@@ -238,14 +238,13 @@ function HowItWorks() {
   ];
 
   return (
-    <section id="how-it-works" style={slideSection("#000", { color: "#fff", boxShadow: "0 25px 50px -12px rgba(0,0,0,0.5)" })}>
-      <div style={{ position: "absolute", top: 0, right: 0, width: 1000, height: 1000, background: "radial-gradient(circle at center, rgba(139,92,246,0.05) 0%, transparent 60%)", filter: "blur(100px)", pointerEvents: "none" }} />
-      <div style={{ position: "absolute", bottom: 0, left: 0, width: 800, height: 800, background: "radial-gradient(circle at center, rgba(52,211,153,0.04) 0%, transparent 60%)", filter: "blur(100px)", pointerEvents: "none" }} />
+    <section id="how-it-works" style={slideSection("#FFFFFF", { color: "#000", boxShadow: "0 25px 50px -12px rgba(0,0,0,0.08)" })}>
+      <MetaballBackground backgroundColor="#FFFFFF" color="#E5E7EB" dotCount={10} />
       <div style={{ maxWidth: 1280, margin: "0 auto", display: "flex", flexDirection: "column", gap: 64, position: "relative", zIndex: 1 }}>
         <div style={{ textAlign: "center", maxWidth: 800, margin: "0 auto" }}>
-          <h2 style={{ fontFamily: "'Outfit', sans-serif", fontSize: "clamp(3rem,5vw,5.5rem)", fontWeight: 700, lineHeight: 0.9, letterSpacing: "-3px", marginBottom: 24 }}>
+          <h2 style={{ fontFamily: "'Outfit', sans-serif", fontSize: "clamp(3rem,5vw,5.5rem)", fontWeight: 700, lineHeight: 0.9, letterSpacing: "-3px", marginBottom: 24, color: "#000" }}>
             How Flowra<br />
-            <span style={{ background: "linear-gradient(to right, #A78BFA, #60A5FA)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>works.</span>
+            <span style={{ background: "linear-gradient(to right, #7C3AED, #3B82F6)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>works.</span>
           </h2>
           <p style={{ color: "#6B7280", fontSize: "1.2rem", lineHeight: 1.7, fontWeight: 500 }}>
             Three simple steps to eliminate the overhead of manual board updates and execute project synchronization in real-time.
@@ -254,17 +253,17 @@ function HowItWorks() {
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 24 }}>
           {steps.map((step, i) => (
             <motion.div key={i} initial={{ opacity: 0, y: 50 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.8, delay: i * 0.15 }}
-              style={{ position: "relative", borderRadius: "2rem", border: "1px solid rgba(255,255,255,0.06)", background: "rgba(255,255,255,0.02)", padding: "40px 28px", overflow: "hidden", display: "flex", flexDirection: "column" }}>
-              <div style={{ position: "absolute", right: -16, top: -24, fontFamily: "'Outfit', sans-serif", fontSize: "14rem", fontWeight: 900, color: "rgba(255,255,255,0.015)", lineHeight: 1, pointerEvents: "none", userSelect: "none", zIndex: 0 }}>{step.num}</div>
+              style={{ position: "relative", borderRadius: "2rem", border: "1px solid #f3f4f6", background: "#fff", padding: "40px 28px", overflow: "hidden", display: "flex", flexDirection: "column", boxShadow: "0 4px 30px rgba(0,0,0,0.04)" }}>
+              <div style={{ position: "absolute", right: -16, top: -24, fontFamily: "'Outfit', sans-serif", fontSize: "14rem", fontWeight: 900, color: "rgba(0,0,0,0.03)", lineHeight: 1, pointerEvents: "none", userSelect: "none", zIndex: 0 }}>{step.num}</div>
               <div style={{ position: "relative", zIndex: 1, flex: 1 }}>
                 <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "6px 14px", borderRadius: 9999, background: step.bg, border: `1px solid ${step.border}`, color: step.color, fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 24 }}>
                   Step {["One", "Two", "Three"][i]}
                 </div>
-                <h3 style={{ fontFamily: "'Outfit', sans-serif", fontSize: "1.8rem", fontWeight: 600, color: "#fff", marginBottom: 12, lineHeight: 1.2, letterSpacing: "-1px" }}>{step.title}</h3>
-                <p style={{ color: "#9CA3AF", fontSize: "1rem", lineHeight: 1.7 }}>{step.desc}</p>
+                <h3 style={{ fontFamily: "'Outfit', sans-serif", fontSize: "1.8rem", fontWeight: 600, color: "#111", marginBottom: 12, lineHeight: 1.2, letterSpacing: "-1px" }}>{step.title}</h3>
+                <p style={{ color: "#6B7280", fontSize: "1rem", lineHeight: 1.7 }}>{step.desc}</p>
               </div>
-              <div style={{ marginTop: 32, height: 64, position: "relative", borderRadius: 12, background: "#050505", border: "1px solid rgba(255,255,255,0.08)", padding: 12, display: "flex", flexDirection: "column", justifyContent: "center", overflow: "hidden", zIndex: 1 }}>
-                <div style={{ position: "absolute", top: 0, right: 0, width: 80, height: 80, background: `${step.color}22`, filter: "blur(30px)" }} />
+              <div style={{ marginTop: 32, height: 64, position: "relative", borderRadius: 12, background: "#fafafa", border: "1px solid #f3f4f6", padding: 12, display: "flex", flexDirection: "column", justifyContent: "center", overflow: "hidden", zIndex: 1 }}>
+                <div style={{ position: "absolute", top: 0, right: 0, width: 80, height: 80, background: `${step.color}15`, filter: "blur(30px)" }} />
                 <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                   {[1, 0.6, 0.4].map((w, j) => (
                     <div key={j} style={{ height: 3, width: `${w * 100}%`, background: `linear-gradient(to right, ${step.color}, transparent)`, borderRadius: 9999 }} />
@@ -289,25 +288,25 @@ function Features() {
   ];
 
   return (
-    <section id="features" style={slideSection("#FFFFFF", { color: "#000", boxShadow: "0 25px 50px -12px rgba(0,0,0,0.08)" })}>
-      <MetaballBackground backgroundColor="#FFFFFF" color="#E5E7EB" dotCount={15} />
+    <section id="features" style={slideSection("#050505", { color: "#fff", boxShadow: "0 25px 50px -12px rgba(0,0,0,0.5)" })}>
+      <div style={{ position: "absolute", top: 0, left: 0, width: 1000, height: 1000, background: "radial-gradient(circle at center, rgba(16,185,129,0.04) 0%, transparent 60%)", filter: "blur(100px)", pointerEvents: "none" }} />
       <div style={{ maxWidth: 1200, margin: "0 auto", position: "relative", zIndex: 1, width: "100%" }}>
         <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.8 }} style={{ textAlign: "center", marginBottom: 56 }}>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "8px 16px", borderRadius: 9999, border: "1px solid #e5e7eb", background: "#fff", boxShadow: "0 1px 4px rgba(0,0,0,0.04)", marginBottom: 20 }}>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "8px 16px", borderRadius: 9999, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.03)", marginBottom: 20 }}>
             <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#10B981", animation: "pulse 2s infinite" }} />
-            <span style={{ fontSize: 14, color: "#6B7280", textTransform: "uppercase", letterSpacing: "0.1em", fontWeight: 700 }}>Core Capabilities</span>
+            <span style={{ fontSize: 14, color: "rgba(255,255,255,0.6)", textTransform: "uppercase", letterSpacing: "0.1em", fontWeight: 700 }}>Core Capabilities</span>
           </div>
-          <h2 style={{ fontFamily: "'Outfit', sans-serif", fontSize: "clamp(2.5rem,4vw,4.5rem)", fontWeight: 500, letterSpacing: "-3px", lineHeight: 1, color: "#000" }}>
-            Engineered<br /><span style={{ color: "#9CA3AF" }}>for every sprint.</span>
+          <h2 style={{ fontFamily: "'Outfit', sans-serif", fontSize: "clamp(2.5rem,4vw,4.5rem)", fontWeight: 500, letterSpacing: "-3px", lineHeight: 1, color: "#fff" }}>
+            Engineered<br /><span style={{ color: "#6B7280" }}>for every sprint.</span>
           </h2>
         </motion.div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 20, gridAutoRows: 300 }}>
           {feats.map((f, i) => (
             <motion.div key={i} initial={{ opacity: 0, scale: 0.95 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ duration: 0.7, delay: i * 0.1 }}
               whileHover={{ scale: 0.98 }}
-              style={{ gridColumn: `span ${f.col}`, position: "relative", borderRadius: 28, background: "#fff", border: "1px solid #f3f4f6", boxShadow: "0 4px 30px rgba(0,0,0,0.03)", padding: 32, overflow: "hidden", cursor: "pointer", display: "flex", flexDirection: "column", justifyContent: "flex-end" }}>
+              style={{ gridColumn: `span ${f.col}`, position: "relative", borderRadius: 28, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", boxShadow: "0 4px 30px rgba(0,0,0,0.2)", padding: 32, overflow: "hidden", cursor: "pointer", display: "flex", flexDirection: "column", justifyContent: "flex-end" }}>
               {f.visual === "bars" && (
-                <div style={{ position: "absolute", inset: 0, top: 0, paddingTop: 48, display: "flex", alignItems: "flex-start", justifyContent: "center", gap: 6, opacity: 0.3 }}>
+                <div style={{ position: "absolute", inset: 0, top: 0, paddingTop: 48, display: "flex", alignItems: "flex-start", justifyContent: "center", gap: 6, opacity: 0.4 }}>
                   {[...Array(12)].map((_, j) => (
                     <motion.div key={j} animate={{ height: ["20%", "70%", "30%", "60%", "20%"] }} transition={{ duration: 2, repeat: Infinity, delay: j * 0.1, ease: "easeInOut" }}
                       style={{ width: 14, background: "linear-gradient(to top, #10B981, #34D399)", borderRadius: 4, minHeight: 20 }} />
@@ -316,8 +315,8 @@ function Features() {
               )}
               {f.visual === "shield" && (
                 <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", paddingBottom: 60 }}>
-                  <div style={{ width: 80, height: 80, borderRadius: "50%", border: "1px solid #e5e7eb", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>
+                  <div style={{ width: 80, height: 80, borderRadius: "50%", border: "1px solid rgba(255,255,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>
                   </div>
                 </div>
               )}
@@ -325,26 +324,26 @@ function Features() {
                 <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: "50%", marginTop: 40, padding: "0 40px", display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 6, opacity: 0.5 }}>
                   {[...Array(16)].map((_, j) => (
                     <motion.div key={j} animate={{ opacity: [0.3, 1, 0.3] }} transition={{ duration: 3, repeat: Infinity, delay: j * 0.2 }}
-                      style={{ borderRadius: 6, background: j % 3 === 0 ? "#e5e7eb" : j % 5 === 0 ? "rgba(59,130,246,0.3)" : "rgba(29,78,216,0.1)" }} />
+                      style={{ borderRadius: 6, background: j % 3 === 0 ? "rgba(255,255,255,0.08)" : j % 5 === 0 ? "rgba(96,165,250,0.2)" : "rgba(59,130,246,0.08)" }} />
                   ))}
                 </div>
               )}
               {f.visual === "rings" && (
                 <div style={{ position: "absolute", right: 32, top: "50%", transform: "translateY(-50%)", pointerEvents: "none" }}>
                   <div style={{ position: "relative", width: 160, height: 160 }}>
-                    <div style={{ position: "absolute", inset: 0, borderRadius: "50%", border: "1px solid #e5e7eb" }} />
+                    <div style={{ position: "absolute", inset: 0, borderRadius: "50%", border: "1px solid rgba(255,255,255,0.1)" }} />
                     <motion.div animate={{ rotate: 360 }} transition={{ duration: 10, repeat: Infinity, ease: "linear" }} style={{ position: "absolute", inset: 14, borderRadius: "50%", borderTop: "2px solid #10B981", borderLeft: "2px solid transparent", borderRight: "2px solid transparent", borderBottom: "2px solid transparent" }} />
                     <motion.div animate={{ rotate: -360 }} transition={{ duration: 15, repeat: Infinity, ease: "linear" }} style={{ position: "absolute", inset: 28, borderRadius: "50%", borderBottom: "2px solid #60A5FA", borderRight: "2px solid transparent", borderTop: "2px solid transparent", borderLeft: "2px solid transparent" }} />
                     <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-                      <span style={{ fontSize: 9, color: "#9CA3AF", fontWeight: 700, letterSpacing: "0.2em" }}>LIVE</span>
-                      <span style={{ fontFamily: "monospace", fontWeight: 700, color: "#000", marginTop: 4 }}>SYNC</span>
+                      <span style={{ fontSize: 9, color: "#6B7280", fontWeight: 700, letterSpacing: "0.2em" }}>LIVE</span>
+                      <span style={{ fontFamily: "monospace", fontWeight: 700, color: "#fff", marginTop: 4 }}>SYNC</span>
                     </div>
                   </div>
                 </div>
               )}
               <div style={{ position: "relative", zIndex: 1 }}>
-                <h3 style={{ fontFamily: "'Outfit', sans-serif", fontSize: "1.4rem", fontWeight: 500, marginBottom: 10, color: "#000" }}>{f.title}</h3>
-                <p style={{ color: "#6B7280", fontWeight: 500, fontSize: "0.95rem" }}>{f.desc}</p>
+                <h3 style={{ fontFamily: "'Outfit', sans-serif", fontSize: "1.4rem", fontWeight: 500, marginBottom: 10, color: "#fff" }}>{f.title}</h3>
+                <p style={{ color: "#9CA3AF", fontWeight: 500, fontSize: "0.95rem" }}>{f.desc}</p>
               </div>
             </motion.div>
           ))}
@@ -378,26 +377,29 @@ function UserRoles() {
   ];
 
   return (
-    <section style={slideSection("#050505", { color: "#fff", boxShadow: "0 25px 50px -12px rgba(0,0,0,0.5)" })}>
-      <div style={{ position: "absolute", width: "80vw", height: "80vw", borderRadius: "50%", background: "radial-gradient(circle at center, oklch(0.3 0.1 240) 0%, transparent 60%)", filter: "blur(100px)", top: "10%", left: "50%", transform: "translateX(-50%)", zIndex: 0, opacity: 0.5, pointerEvents: "none" }} />
+    <section style={slideSection("#FFFFFF", { color: "#000", boxShadow: "0 25px 50px -12px rgba(0,0,0,0.08)" })}>
+      <MetaballBackground backgroundColor="#FFFFFF" color="#f3f4f6" dotCount={8} />
       <div style={{ maxWidth: 1280, margin: "0 auto", position: "relative", zIndex: 10, width: "100%" }}>
         <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} style={{ marginBottom: 56 }}>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "8px 16px", borderRadius: 9999, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.03)", marginBottom: 20 }}>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "8px 16px", borderRadius: 9999, border: "1px solid #e5e7eb", background: "#fff", boxShadow: "0 1px 4px rgba(0,0,0,0.04)", marginBottom: 20 }}>
             <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#A78BFA" }} />
-            <span style={{ fontSize: 14, color: "rgba(255,255,255,0.6)", textTransform: "uppercase", letterSpacing: "0.1em", fontWeight: 700 }}>Role-Based Intelligence</span>
+            <span style={{ fontSize: 14, color: "#6B7280", textTransform: "uppercase", letterSpacing: "0.1em", fontWeight: 700 }}>Role-Based Intelligence</span>
           </div>
-          <h2 style={{ fontFamily: "'Outfit', sans-serif", fontSize: "clamp(2.5rem,4vw,4rem)", fontWeight: 500, letterSpacing: "-2px", marginBottom: 12 }}>
+          <h2 style={{ fontFamily: "'Outfit', sans-serif", fontSize: "clamp(2.5rem,4vw,4rem)", fontWeight: 500, letterSpacing: "-2px", marginBottom: 12, color: "#000" }}>
             Built for Every Role
           </h2>
-          <p style={{ color: "rgba(255,255,255,0.6)", fontSize: "1.1rem", maxWidth: 560 }}>Intelligent workflows tailored to every team member, ensuring 100% Jira-to-Code synchronization.</p>
+          <p style={{ color: "#6B7280", fontSize: "1.1rem", maxWidth: 560 }}>Intelligent workflows tailored to every team member, ensuring 100% Jira-to-Code synchronization.</p>
         </motion.div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 28 }}>
           {roles.map((r, i) => (
             <motion.div key={i} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.7, delay: i * 0.15 }}
-              className="glass-prism" style={{ "--color-1": r.color }}>
-              <div className="glass-prism-icon">{r.icon}</div>
-              <h3>{r.title}</h3>
-              <p style={{ color: "rgba(255,255,255,0.6)", lineHeight: 1.7, fontSize: "1rem", margin: 0 }}>{r.desc}</p>
+              style={{ position: "relative", padding: "2.5rem", borderRadius: 24, background: "#fff", border: "1px solid #f3f4f6", boxShadow: "0 4px 30px rgba(0,0,0,0.04)", transition: "all 0.5s cubic-bezier(0.25,1,0.5,1)", display: "flex", flexDirection: "column", alignItems: "flex-start", cursor: "pointer" }}
+              whileHover={{ y: -10, scale: 1.02 }}>
+              <div style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 60, height: 60, borderRadius: 14, marginBottom: 28, background: `${r.color}15`, color: r.color, border: `1px solid ${r.color}30` }}>
+                {r.icon}
+              </div>
+              <h3 style={{ fontFamily: "'Outfit', sans-serif", fontSize: "1.7rem", fontWeight: 500, marginBottom: 14, color: "#111", lineHeight: 1.1, letterSpacing: "-1px" }}>{r.title}</h3>
+              <p style={{ color: "#6B7280", lineHeight: 1.7, fontSize: "1rem", margin: 0 }}>{r.desc}</p>
             </motion.div>
           ))}
         </div>
@@ -418,7 +420,7 @@ function Integrations() {
   ];
 
   return (
-    <section id="integrations" style={slideSection("#000", { color: "#fff", minHeight: "auto", paddingTop: 100, paddingBottom: 100 })}>
+    <section id="integrations" style={slideSection("#050505", { color: "#fff", minHeight: "auto", paddingTop: 100, paddingBottom: 100 })}>
       <div style={{ maxWidth: 1000, margin: "0 auto", position: "relative", zIndex: 1, width: "100%" }}>
         <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} style={{ textAlign: "center", marginBottom: 56 }}>
           <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "8px 16px", borderRadius: 9999, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.03)", marginBottom: 20 }}>
@@ -475,15 +477,16 @@ function Pricing() {
   ];
 
   return (
-    <section id="pricing" style={slideSection("#050505", { color: "#fff" })}>
+    <section id="pricing" style={slideSection("#FFFFFF", { color: "#000" })}>
+      <MetaballBackground backgroundColor="#FFFFFF" color="#E5E7EB" dotCount={10} />
       <div style={{ maxWidth: 1200, margin: "0 auto", position: "relative", zIndex: 1, width: "100%" }}>
         <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} style={{ textAlign: "center", marginBottom: 64 }}>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "8px 16px", borderRadius: 9999, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.03)", marginBottom: 20 }}>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "8px 16px", borderRadius: 9999, border: "1px solid #e5e7eb", background: "#fff", boxShadow: "0 1px 4px rgba(0,0,0,0.04)", marginBottom: 20 }}>
             <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#10B981" }} />
-            <span style={{ fontSize: 14, color: "rgba(255,255,255,0.6)", textTransform: "uppercase", letterSpacing: "0.1em", fontWeight: 700 }}>Pricing</span>
+            <span style={{ fontSize: 14, color: "#6B7280", textTransform: "uppercase", letterSpacing: "0.1em", fontWeight: 700 }}>Pricing</span>
           </div>
-          <h2 style={{ fontFamily: "'Outfit', sans-serif", fontSize: "clamp(2.5rem,4vw,4.5rem)", fontWeight: 500, letterSpacing: "-3px", lineHeight: 1, marginBottom: 20 }}>
-            Simple, transparent<br /><span style={{ color: "#6B7280" }}>pricing.</span>
+          <h2 style={{ fontFamily: "'Outfit', sans-serif", fontSize: "clamp(2.5rem,4vw,4.5rem)", fontWeight: 500, letterSpacing: "-3px", lineHeight: 1, marginBottom: 20, color: "#000" }}>
+            Simple, transparent<br /><span style={{ color: "#9CA3AF" }}>pricing.</span>
           </h2>
           <p style={{ color: "#6B7280", fontSize: "1.1rem", maxWidth: 500, margin: "0 auto" }}>Start free. Scale as your team grows. No hidden fees.</p>
         </motion.div>
@@ -491,7 +494,8 @@ function Pricing() {
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 24 }}>
           {plans.map((plan, i) => (
             <motion.div key={plan.name} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.12 }}
-              className={`pricing-card ${plan.featured ? "pricing-card--featured" : "pricing-card--dark"}`}
+              style={{ position: "relative", borderRadius: 28, padding: "40px 32px", display: "flex", flexDirection: "column", overflow: "hidden", transition: "all 0.4s cubic-bezier(0.25,1,0.5,1)", background: plan.featured ? "#0a0a0a" : "#fff", border: plan.featured ? "1px solid rgba(16,185,129,0.3)" : "1px solid #f3f4f6", boxShadow: plan.featured ? "0 20px 60px rgba(0,0,0,0.15)" : "0 4px 30px rgba(0,0,0,0.04)" }}
+              whileHover={{ y: -8 }}
             >
               {plan.featured && (
                 <div style={{ position: "absolute", top: 20, right: 20, padding: "4px 14px", borderRadius: 9999, background: "rgba(16,185,129,0.15)", border: "1px solid rgba(16,185,129,0.3)", fontSize: 12, fontWeight: 700, color: "#10B981", textTransform: "uppercase", letterSpacing: "0.05em" }}>
@@ -499,31 +503,31 @@ function Pricing() {
                 </div>
               )}
               <div style={{ marginBottom: 32 }}>
-                <h3 style={{ fontFamily: "'Outfit', sans-serif", fontSize: "1.3rem", fontWeight: 600, color: "#fff", marginBottom: 8 }}>{plan.name}</h3>
+                <h3 style={{ fontFamily: "'Outfit', sans-serif", fontSize: "1.3rem", fontWeight: 600, color: plan.featured ? "#fff" : "#111", marginBottom: 8 }}>{plan.name}</h3>
                 <div style={{ display: "flex", alignItems: "baseline", gap: 4, marginBottom: 8 }}>
-                  <span style={{ fontFamily: "'Outfit', sans-serif", fontSize: "3.5rem", fontWeight: 600, color: "#fff", letterSpacing: "-2px", lineHeight: 1 }}>{plan.price}</span>
+                  <span style={{ fontFamily: "'Outfit', sans-serif", fontSize: "3.5rem", fontWeight: 600, color: plan.featured ? "#fff" : "#111", letterSpacing: "-2px", lineHeight: 1 }}>{plan.price}</span>
                   <span style={{ fontSize: "0.95rem", color: "#6B7280", fontWeight: 500 }}>{plan.period}</span>
                 </div>
                 <p style={{ color: "#6B7280", fontSize: "0.9rem", lineHeight: 1.5 }}>{plan.desc}</p>
               </div>
               <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 14, marginBottom: 32 }}>
                 {plan.features.map((f) => (
-                  <div key={f} style={{ display: "flex", alignItems: "center", gap: 10, fontSize: "0.9rem", color: "rgba(255,255,255,0.7)" }}>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={plan.featured ? "#10B981" : "#6B7280"} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                  <div key={f} style={{ display: "flex", alignItems: "center", gap: 10, fontSize: "0.9rem", color: plan.featured ? "rgba(255,255,255,0.7)" : "#6B7280" }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={plan.featured ? "#10B981" : "#9CA3AF"} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
                     {f}
                   </div>
                 ))}
               </div>
               <Link href="/signup" style={{ textDecoration: "none" }}>
                 <button style={{
-                  width: "100%", padding: "16px", borderRadius: 14, border: plan.featured ? "none" : "1px solid rgba(255,255,255,0.15)",
-                  background: plan.featured ? "#fff" : "transparent",
+                  width: "100%", padding: "16px", borderRadius: 14, border: plan.featured ? "none" : "1px solid #e5e7eb",
+                  background: plan.featured ? "#fff" : "#000",
                   color: plan.featured ? "#000" : "#fff",
                   fontWeight: 700, fontSize: "0.95rem", cursor: "pointer", transition: "all 0.3s",
                   fontFamily: "inherit"
                 }}
-                  onMouseEnter={(e) => { if (!plan.featured) { e.target.style.background = "rgba(255,255,255,0.05)"; } else { e.target.style.transform = "translateY(-2px)"; } }}
-                  onMouseLeave={(e) => { if (!plan.featured) { e.target.style.background = "transparent"; } else { e.target.style.transform = "none"; } }}
+                  onMouseEnter={(e) => { e.target.style.transform = "translateY(-2px)"; e.target.style.boxShadow = "0 8px 20px rgba(0,0,0,0.15)"; }}
+                  onMouseLeave={(e) => { e.target.style.transform = "none"; e.target.style.boxShadow = "none"; }}
                 >
                   {plan.cta}
                 </button>
