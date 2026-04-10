@@ -1,8 +1,8 @@
 import "./globals.css";
 
 export const metadata = {
-  title: "Flowra   Agentic Agile Orchestration & Performance Verification",
-  description: "Flowra is an intelligent orchestration platform that eliminates manual Agile management friction through AI-powered synchronization. SE Project   Group 3, Section C.",
+  title: "Flowra — AI-Powered Agile Orchestration Platform",
+  description: "Flowra automates your entire Agile workflow. AI agents monitor commits, PRs, and team chat to keep Jira perfectly synced — so your team can focus on building.",
   icons: {
     icon: [
       { url: "/icon.svg", type: "image/svg+xml" },
