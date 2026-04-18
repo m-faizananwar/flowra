@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import MetaballBackground from "@/components/MetaballBackground";
@@ -116,10 +117,18 @@ export default function SignUpPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const router = useRouter();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Auth logic will be connected later
+    setIsSubmitting(true);
+    
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    // Redirect to dashboard
+    router.push("/dashboard");
   };
 
   return (
@@ -199,13 +208,13 @@ export default function SignUpPage() {
                 <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 600, color: "rgba(255,255,255,0.6)", marginBottom: 8 }}>
                   Full Name
                 </label>
-                <input type="text" className="auth-input" placeholder="Jane Doe" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
+                <input type="text" className="auth-input" placeholder="Jane Doe" value={fullName} onChange={(e) => setFullName(e.target.value)} required autoComplete="name" />
               </div>
               <div>
                 <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 600, color: "rgba(255,255,255,0.6)", marginBottom: 8 }}>
                   Work Email
                 </label>
-                <input type="email" className="auth-input" placeholder="you@company.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                <input type="email" className="auth-input" placeholder="you@company.com" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" />
               </div>
               <div>
                 <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 600, color: "rgba(255,255,255,0.6)", marginBottom: 8 }}>
@@ -220,6 +229,7 @@ export default function SignUpPage() {
                     onChange={(e) => setPassword(e.target.value)}
                     required
                     minLength={8}
+                    autoComplete="new-password"
                     style={{ paddingRight: 48 }}
                   />
                   <button
@@ -239,7 +249,7 @@ export default function SignUpPage() {
                 <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 600, color: "rgba(255,255,255,0.6)", marginBottom: 8 }}>
                   Confirm Password
                 </label>
-                <input type="password" className="auth-input" placeholder="••••••••" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required minLength={8} />
+                <input type="password" className="auth-input" placeholder="••••••••" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required minLength={8} autoComplete="new-password" />
               </div>
 
               {/* Terms */}
@@ -272,8 +282,19 @@ export default function SignUpPage() {
                 </span>
               </label>
 
-              <button type="submit" className="auth-submit" style={{ marginTop: 8 }}>
-                Create Account
+              <button type="submit" className="auth-submit" style={{ marginTop: 8, display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }} disabled={isSubmitting}>
+                {isSubmitting ? (
+                  <>
+                    <motion.div
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                      style={{ width: 18, height: 18, borderRadius: "50%", border: "2px solid rgba(0,0,0,0.1)", borderTopColor: "#000" }}
+                    />
+                    Creating Account...
+                  </>
+                ) : (
+                  "Create Account"
+                )}
               </button>
             </form>
 

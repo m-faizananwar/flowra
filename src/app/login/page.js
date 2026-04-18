@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import MetaballBackground from "@/components/MetaballBackground";
@@ -116,10 +117,18 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const router = useRouter();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Auth logic will be connected later
+    setIsSubmitting(true);
+    
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    // Redirect to dashboard
+    router.push("/dashboard");
   };
 
   return (
@@ -206,6 +215,7 @@ export default function LoginPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
+                  autoComplete="email"
                 />
               </div>
               <div>
@@ -225,6 +235,7 @@ export default function LoginPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
+                    autoComplete="current-password"
                     style={{ paddingRight: 48 }}
                   />
                   <button
@@ -240,8 +251,19 @@ export default function LoginPage() {
                   </button>
                 </div>
               </div>
-              <button type="submit" className="auth-submit" style={{ marginTop: 8 }}>
-                Sign In
+              <button type="submit" className="auth-submit" style={{ marginTop: 8, display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }} disabled={isSubmitting}>
+                {isSubmitting ? (
+                  <>
+                    <motion.div
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                      style={{ width: 18, height: 18, borderRadius: "50%", border: "2px solid rgba(0,0,0,0.1)", borderTopColor: "#000" }}
+                    />
+                    Signing In...
+                  </>
+                ) : (
+                  "Sign In"
+                )}
               </button>
             </form>
 
