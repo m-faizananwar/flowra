@@ -19,6 +19,9 @@ export default {
         '2xl': '1rem',
         '2.5rem': '2.5rem',
       },
+      animation: {
+        'spin-slow': 'spin 3s linear infinite',
+      },
     },
   },
   plugins: [],
