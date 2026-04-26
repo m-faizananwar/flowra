@@ -22,7 +22,7 @@ export function Header({ userEmail = "User" }: HeaderProps) {
     const getSubtitle = () => {
         const title = getTitle();
         if (title === 'Overview') return `Welcome back, ${userEmail.split('@')[0]}`;
-        return 'Manage your financial workflow';
+        return 'Optimizing your agile delivery stream';
     };
 
     return (

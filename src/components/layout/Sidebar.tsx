@@ -1,6 +1,6 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { 
     PieChart,
@@ -21,10 +21,20 @@ import {
     Bell,
     Home as HomeIcon,
     Table,
-    CalendarClock
+    CalendarClock,
+    LayoutGrid,
+    GitPullRequest,
+    History as HistoryIcon,
+    Puzzle,
+    Radio,
+    Target,
+    AreaChart,
+    LogOut
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { useState, useEffect } from "react";
+import { supabase } from "@/lib/supabase";
 
 const MENU_SECTIONS = [
     {
@@ -36,23 +46,23 @@ const MENU_SECTIONS = [
     {
         title: "Agile Orchestration",
         items: [
-            { icon: WalletCards, label: "Jira Sync", href: "/jira", badge: "Live" },
-            { icon: Activity, label: "PR Verification", href: "/pr" },
-            { icon: Sparkles, label: "Audit Logs", href: "/audit" },
+            { icon: LayoutGrid, label: "Jira Sync", href: "/jira", badge: "Live" },
+            { icon: GitPullRequest, label: "PR Verification", href: "/pr" },
+            { icon: HistoryIcon, label: "Audit Logs", href: "/audit" },
         ]
     },
     {
         title: "Connectivity",
         items: [
-            { icon: PieChart, label: "Integrations", href: "/integrations" },
-            { icon: Table, label: "Signals", href: "/signals" },
+            { icon: Puzzle, label: "Integrations", href: "/integrations" },
+            { icon: Radio, label: "Signals", href: "/signals" },
         ]
     },
     {
         title: "Intelligence & Data",
         items: [
-            { icon: Gem, label: "Performance", href: "/performance" },
-            { icon: PiggyBank, label: "Sprint Analytics", href: "/sprints" },
+            { icon: Target, label: "Performance", href: "/performance" },
+            { icon: AreaChart, label: "Sprint Analytics", href: "/sprints" },
         ]
     },
     {
@@ -71,6 +81,28 @@ export function Sidebar({
     setIsCollapsed: (v: boolean) => void 
 }) {
     const pathname = usePathname();
+    const router = useRouter();
+    const [userData, setUserData] = useState<{ email?: string; name?: string }>({});
+
+    const handleLogout = async () => {
+        await supabase.auth.signOut();
+        // Clear local bypasses as well
+        localStorage.removeItem('flowra_onboarding_bypass');
+        router.push("/login");
+    };
+
+    useEffect(() => {
+        const fetchUser = async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                setUserData({
+                    email: user.email,
+                    name: user.user_metadata?.full_name || user.email?.split('@')[0]
+                });
+            }
+        };
+        fetchUser();
+    }, []);
 
     return (
         <motion.aside 
@@ -106,10 +138,14 @@ export function Sidebar({
                                         initial={{ opacity: 0, x: -10 }}
                                         animate={{ opacity: 1, x: 0 }}
                                     >
-                                        <h4 className="text-[14px] font-black text-white tracking-tight leading-none mb-1 uppercase">Faizan</h4>
+                                        <h4 className="text-[14px] font-black text-white tracking-tight leading-none mb-1 uppercase">
+                                            {userData.name || "User"}
+                                        </h4>
                                         <div className="flex items-center gap-1 opacity-40">
                                             <div className="w-1 h-1 rounded-full bg-white" />
-                                            <p className="text-[10px] text-white font-black uppercase tracking-wider">Lead Architect</p>
+                                            <p className="text-[10px] text-white font-black uppercase tracking-wider">
+                                                {userData.name ? "Node Active" : "Initializing..."}
+                                            </p>
                                         </div>
                                     </motion.div>
                                 )}
@@ -275,22 +311,37 @@ export function Sidebar({
                             </motion.div>
                         )}
                         
-                        {/* Company Switcher Container */}
-                        <div className={cn(
-                            "flex items-center justify-between p-3 rounded-[1.25rem] bg-white/[0.04] border border-white/5 group hover:bg-white/[0.07] transition-all cursor-pointer w-full",
-                            isCollapsed && "flex-col gap-4 p-2"
-                        )}>
-                            <div className={cn("flex items-center gap-3", isCollapsed && "flex-col")}>
-                                <div className="w-9 h-9 rounded-full bg-black border border-white/10 flex items-center justify-center overflow-hidden shadow-xl ring-2 ring-white/5 shrink-0">
-                                    <div className="text-[11px] font-black text-white italic tracking-tighter opacity-80 group-hover:opacity-100 transition-opacity">FLWR</div>
-                                </div>
-                                {!isCollapsed && (
-                                    <div className="flex flex-col">
-                                        <span className="text-[13px] font-bold text-white tracking-tight leading-none mb-1">Flowra Inc.</span>
-                                        <span className="text-[10px] text-white/30 font-bold uppercase tracking-widest">Enterprise</span>
+                        {/* Company Switcher & Logout Container */}
+                        <div className="flex flex-col gap-3 w-full">
+                            <div className={cn(
+                                "flex items-center justify-between p-3 rounded-[1.25rem] bg-white/[0.04] border border-white/5 group hover:bg-white/[0.07] transition-all cursor-pointer w-full",
+                                isCollapsed && "flex-col gap-4 p-2"
+                            )}>
+                                <div className={cn("flex items-center gap-3", isCollapsed && "flex-col")}>
+                                    <div className="w-9 h-9 rounded-full bg-black border border-white/10 flex items-center justify-center overflow-hidden shadow-xl ring-2 ring-white/5 shrink-0">
+                                        <div className="text-[11px] font-black text-white italic tracking-tighter opacity-80 group-hover:opacity-100 transition-opacity">FLWR</div>
                                     </div>
-                                )}
+                                    {!isCollapsed && (
+                                        <div className="flex flex-col">
+                                            <span className="text-[13px] font-bold text-white tracking-tight leading-none mb-1">Flowra Inc.</span>
+                                            <span className="text-[10px] text-white/30 font-bold uppercase tracking-widest">Enterprise</span>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
+
+                            <button 
+                                onClick={handleLogout}
+                                className={cn(
+                                    "flex items-center gap-3 w-full p-4 rounded-2xl bg-red-500/5 border border-red-500/10 text-red-400/60 hover:bg-red-500/10 hover:text-red-400 transition-all active:scale-[0.98] group",
+                                    isCollapsed && "justify-center p-3.5"
+                                )}
+                            >
+                                <LogOut className={cn("w-5 h-5", !isCollapsed && "shrink-0")} />
+                                {!isCollapsed && (
+                                    <span className="text-[13px] font-black uppercase tracking-[0.1em]">Sign Out</span>
+                                )}
+                            </button>
                         </div>
                     </div>
                 </div>

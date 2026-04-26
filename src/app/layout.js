@@ -13,10 +13,25 @@ export const metadata = {
   },
 };
 
+import { Toaster } from 'sonner';
+
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body suppressHydrationWarning>
+        <Toaster 
+          position="top-right" 
+          toastOptions={{
+            style: {
+              background: 'rgba(23, 24, 28, 0.8)',
+              backdropFilter: 'blur(12px)',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              color: '#fff',
+              borderRadius: '1rem',
+              fontFamily: "'Inter', sans-serif",
+            },
+          }} 
+        />
         {children}
       </body>
     </html>

@@ -1,12 +1,11 @@
 "use client";
 
 import DashboardLayout from "@/components/layout/DashboardLayout";
-import { AuditLogsContent } from "@/components/activity/AuditLogsContent";
 
-export default function AuditLogsPage() {
+export default function DashboardGroupLayout({ children }) {
     return (
         <DashboardLayout>
-            <AuditLogsContent />
+            {children}
         </DashboardLayout>
     );
 }

@@ -31,21 +31,20 @@ export default function SettingsPage() {
     const [activeTab, setActiveTab] = useState('profile');
 
     return (
-        <DashboardLayout>
-            <PageTransition pageTitle="Settings">
-                <motion.div
-                    variants={staggerContainer}
-                    initial="hidden"
-                    animate="show"
-                    className="space-y-8 pb-12"
-                >
-                    {/* Header */}
-                    <div>
-                        <h1 className="text-4xl font-black text-white font-[family-name:var(--font-outfit)] tracking-tight italic">
-                            SYSTEM CONFIG
-                        </h1>
-                        <p className="text-[11px] font-black text-white/30 uppercase tracking-[0.3em] mt-1">Global workspace and account parameters</p>
-                    </div>
+        <PageTransition pageTitle="Settings">
+            <motion.div
+                variants={staggerContainer}
+                initial="hidden"
+                animate="show"
+                className="space-y-8 pb-12"
+            >
+                {/* Header */}
+                <div>
+                    <h1 className="text-4xl font-black text-white font-[family-name:var(--font-outfit)] tracking-tight italic">
+                        SYSTEM CONFIG
+                    </h1>
+                    <p className="text-[11px] font-black text-white/30 uppercase tracking-[0.3em] mt-1">Global workspace and account parameters</p>
+                </div>
 
                     <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
                         {/* Sidebar Tabs */}
@@ -161,6 +160,5 @@ export default function SettingsPage() {
                     </div>
                 </motion.div>
             </PageTransition>
-        </DashboardLayout>
     );
 }

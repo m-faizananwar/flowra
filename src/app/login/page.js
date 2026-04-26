@@ -1,11 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import MetaballBackground from "@/components/MetaballBackground";
 import FlowLoader from "@/components/Loader.jsx";
+import { supabase } from "@/lib/supabase";
+import { toast } from "sonner";
+import { ShieldAlert, CheckCircle2 } from "lucide-react";
 
 /* ─── Live Activity Widget ─── */
 function LiveActivityWidget() {
@@ -120,15 +123,66 @@ export default function LoginPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
 
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const checkUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('onboarded')
+          .eq('id', user.id)
+          .single();
+        
+        if (profile?.onboarded) {
+          router.push("/dashboard");
+        } else {
+          router.push("/onboarding");
+        }
+      }
+    };
+    checkUser();
+  }, [router]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setError("");
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    // Redirect to dashboard
-    router.push("/dashboard");
+    try {
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (signInError) throw signInError;
+
+      if (data.user) {
+        // Check onboarding status
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('onboarded')
+          .eq('id', data.user.id)
+          .single();
+
+        if (profile?.onboarded) {
+          router.push("/dashboard");
+        } else {
+          router.push("/onboarding");
+        }
+      }
+    } catch (err) {
+      console.error("Login error:", err);
+      const errorMessage = err.message || "Invalid login credentials";
+      setError(errorMessage);
+      setIsSubmitting(false);
+      
+      toast.error("Authentication Failed", {
+        description: errorMessage,
+        icon: <ShieldAlert className="w-5 h-5 text-red-400" />,
+      });
+    }
   };
 
   return (
@@ -187,6 +241,16 @@ export default function LoginPage() {
                 Sign in to your Flowra account
               </p>
             </div>
+
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                style={{ padding: "12px 16px", background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: 12, color: "#EF4444", fontSize: "0.85rem", fontWeight: 500, marginBottom: 12 }}
+              >
+                {error}
+              </motion.div>
+            )}
 
             {/* OAuth Buttons */}
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>

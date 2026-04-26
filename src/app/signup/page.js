@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import MetaballBackground from "@/components/MetaballBackground";
 import FlowLoader from "@/components/Loader";
+import { supabase } from "@/lib/supabase";
 
 /* ─── Sprint Timeline Widget ─── */
 function SprintWidget() {
@@ -120,15 +121,61 @@ export default function SignUpPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
 
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const checkUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('onboarded')
+          .eq('id', user.id)
+          .single();
+        
+        if (profile?.onboarded) {
+          router.push("/dashboard");
+        } else {
+          router.push("/onboarding");
+        }
+      }
+    };
+    checkUser();
+  }, [router]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    // Redirect to dashboard
-    router.push("/dashboard");
+    setError("");
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match");
+      setIsSubmitting(false);
+      return;
+    }
+
+    try {
+      const { data, error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: email.split('@')[0], // Default name from email
+          },
+        },
+      });
+
+      if (signUpError) throw signUpError;
+
+      if (data.user) {
+        // Redirect to verify-email
+        router.push("/verify-email");
+      }
+    } catch (err) {
+      console.error("Signup error:", err);
+      setError(err.message || "An error occurred during signup");
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -187,6 +234,16 @@ export default function SignUpPage() {
                 Start automating your Agile workflow in minutes
               </p>
             </div>
+
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                style={{ padding: "12px 16px", background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: 12, color: "#EF4444", fontSize: "0.85rem", fontWeight: 500 }}
+              >
+                {error}
+              </motion.div>
+            )}
 
             {/* OAuth Buttons */}
             <div style={{ display: "flex", gap: 12 }}>

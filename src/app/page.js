@@ -6,6 +6,7 @@ import Link from "next/link";
 import MetalButton from "@/components/MetalButton";
 import MetaballBackground from "@/components/MetaballBackground";
 import FlowLoader from "@/components/Loader";
+import { supabase } from "@/lib/supabase";
 
 /* ─── Shared slide section style ─── */
 const slideSection = (bg, extra = {}) => ({
@@ -27,12 +28,37 @@ const slideSection = (bg, extra = {}) => ({
 
 /* ─── Navbar ─── */
 function Navbar() {
+  const [user, setUser] = useState(null);
+  const [profile, setProfile] = useState(null);
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 50);
     window.addEventListener("scroll", onScroll);
-    return () => window.removeEventListener("scroll", onScroll);
+    
+    const checkUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+      
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('onboarded')
+          .eq('id', user.id)
+          .single();
+        setProfile(profile);
+      }
+    };
+    checkUser();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => {
+      subscription.unsubscribe();
+      window.removeEventListener("scroll", onScroll);
+    };
   }, []);
 
   const navItems = [
@@ -95,18 +121,31 @@ function Navbar() {
               {item.label}
             </motion.a>
           ))}
-          <motion.div initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 1.1 }}>
-            <Link href="/login" style={{ fontSize: 14, fontWeight: 600, color: "rgba(255,255,255,0.8)", textDecoration: "none", transition: "color 0.2s" }}>
-              Sign In
-            </Link>
-          </motion.div>
-          <motion.div initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 1.2 }}>
-            <Link href="/signup">
-              <MetalButton enableShader={false} style={{ padding: "10px 24px", fontSize: 14 }}>
-                Get Started
-              </MetalButton>
-            </Link>
-          </motion.div>
+          
+          {user ? (
+            <motion.div initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 1.1 }}>
+              <Link href={profile?.onboarded ? "/dashboard" : "/onboarding"}>
+                <MetalButton enableShader={false} style={{ padding: "10px 24px", fontSize: 14 }}>
+                  {profile?.onboarded ? "Dashboard" : "Finish Setup"}
+                </MetalButton>
+              </Link>
+            </motion.div>
+          ) : (
+            <>
+              <motion.div initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 1.1 }}>
+                <Link href="/login" style={{ fontSize: 14, fontWeight: 600, color: "rgba(255,255,255,0.8)", textDecoration: "none", transition: "color 0.2s" }}>
+                  Sign In
+                </Link>
+              </motion.div>
+              <motion.div initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 1.2 }}>
+                <Link href="/signup">
+                  <MetalButton enableShader={false} style={{ padding: "10px 24px", fontSize: 14 }}>
+                    Get Started
+                  </MetalButton>
+                </Link>
+              </motion.div>
+            </>
+          )}
         </div>
       </div>
     </header>
