@@ -30,8 +30,8 @@ export function DashboardContent() {
                     <Loader2 className="w-16 h-16 text-[#24FF7C] animate-spin stroke-[3px] absolute inset-0 [animation-duration:1.5s]" />
                 </div>
                 <div className="flex flex-col items-center gap-1">
-                    <p className="text-[10px] font-black uppercase tracking-[0.4em] text-white/40">Synchronizing</p>
-                    <p className="text-xs font-black uppercase tracking-[0.2em] text-[#24FF7C]">Neural Interface</p>
+                    <p className="text-[10px] font-black uppercase tracking-[0.4em] text-white/40 italic">Syncing workflow.</p>
+                    <p className="text-xs font-black uppercase tracking-[0.2em] text-[#24FF7C]">One moment.</p>
                 </div>
             </div>
         );
@@ -45,7 +45,7 @@ export function DashboardContent() {
                 animate="show"
                 className="space-y-8 pb-12"
             >
-                {/* Row 1: Primary Intelligence */}
+                {/* Row 1: Core Overview */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div className="lg:col-span-2">
                         <motion.div variants={staggerItem}>
@@ -59,7 +59,7 @@ export function DashboardContent() {
                     </div>
                 </div>
 
-                {/* Row 2: Behavioral Dynamics */}
+                {/* Row 2: Sprint Trends */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div className="lg:col-span-2">
                         <motion.div variants={staggerItem}>
@@ -73,7 +73,7 @@ export function DashboardContent() {
                     </div>
                 </div>
 
-                {/* Row 3: Kinetic Analysis & Logs */}
+                {/* Row 3: Detail Activity */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div className="lg:col-span-2">
                         <motion.div variants={staggerItem}>
@@ -88,7 +88,7 @@ export function DashboardContent() {
                     </div>
                 </div>
 
-                {/* Row 4: Network Density & Commitments */}
+                {/* Row 4: Performance & Pending */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div className="lg:col-span-2">
                         <motion.div variants={staggerItem}>

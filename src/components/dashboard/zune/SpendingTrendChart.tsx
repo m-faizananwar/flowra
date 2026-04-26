@@ -42,17 +42,17 @@ export function SpendingTrendChart({ data: liveData }: SpendingTrendChartProps) 
             className="glass-panel p-6 rounded-[2rem] flex flex-col h-full min-h-[340px]"
         >
             <div className="flex items-center justify-between mb-8">
-                <h3 className="text-xl font-black text-white tracking-tight" style={{ fontFamily: 'Outfit, sans-serif' }}>
-                    Activity Dynamics
+                <h3 className="text-xl font-black text-white tracking-tight italic" style={{ fontFamily: 'Outfit, sans-serif' }}>
+                    Sprint Progress.
                 </h3>
                 <div className="flex items-center gap-6">
                     <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full bg-[#8B5CF6]" />
-                        <span className="text-[11px] font-black uppercase tracking-wider text-white/40">Inbound</span>
+                        <div className="w-3 h-3 rounded-full bg-[#8B5CF6]/30" />
+                        <span className="text-[11px] font-black uppercase tracking-wider text-white/40">Planned</span>
                     </div>
                     <div className="flex items-center gap-2">
                         <div className="w-3 h-3 rounded-full bg-[#FF8A8A]" />
-                        <span className="text-[11px] font-black uppercase tracking-wider text-white/40">Outbound</span>
+                        <span className="text-[11px] font-black uppercase tracking-wider text-white/40">Completed</span>
                     </div>
                 </div>
             </div>

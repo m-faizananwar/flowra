@@ -34,8 +34,8 @@ export function IntegrationsContent() {
     if (isLoading) {
         return (
             <div className="h-[calc(100vh-200px)] flex flex-col items-center justify-center gap-6">
-                <Loader2 className="w-12 h-12 text-indigo-400 animate-spin opacity-20" />
-                <p className="text-[10px] font-black uppercase tracking-widest text-white/20">Handshaking Protocols...</p>
+                <Loader2 className="w-12 h-12 text-[#8B5CF6] animate-spin opacity-20" />
+                <p className="text-[10px] font-black uppercase tracking-widest text-white/20">Establishing Connections...</p>
             </div>
         );
     }
@@ -51,10 +51,10 @@ export function IntegrationsContent() {
                 {/* Header */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                     <div>
-                        <h1 className="text-4xl font-black text-white font-[family-name:var(--font-outfit)] tracking-tight">
-                            CONNECTIVITY HUB
+                        <h1 className="text-4xl font-black text-white font-[family-name:var(--font-outfit)] tracking-tight italic">
+                            CONNECT EVERYTHING.
                         </h1>
-                        <p className="text-[11px] font-black text-white/30 uppercase tracking-[0.3em] mt-1">Unified systems and external state management</p>
+                        <p className="text-[11px] font-black text-white/30 uppercase tracking-[0.3em] mt-1">Unified flows. Engineered for zero friction.</p>
                     </div>
 
                     <div className="flex items-center gap-3">
@@ -62,41 +62,72 @@ export function IntegrationsContent() {
                              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-focus-within:text-[#8B5CF6] transition-colors" />
                             <input
                                  type="text"
-                                 placeholder="Search marketplace..."
+                                 placeholder="Find an integration..."
                                  className="h-12 w-64 bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-2xl pl-11 pr-4 text-sm text-white focus:outline-none focus:border-[#8B5CF6]/50 transition-all font-bold"
                             />
                         </div>
                     </div>
                 </div>
 
-                {/* Hero Feature Card */}
+                {/* Hero Feature Card - REDESIGNED */}
                 <motion.div 
                     variants={staggerItem}
-                    className="p-10 rounded-[3rem] bg-white/[0.02] backdrop-blur-3xl border border-white/10 relative overflow-hidden group shadow-2xl"
+                    className="relative p-12 rounded-[3.5rem] bg-[#17181C] border border-white/5 overflow-hidden group shadow-[0_20px_50px_rgba(0,0,0,0.5)]"
                 >
-                    <div className="absolute top-0 right-0 w-96 h-96 bg-[#8B5CF6]/5 blur-[120px] pointer-events-none" />
-                    <div className="relative z-10 flex flex-col h-full justify-between gap-12">
-                        <div className="flex items-center gap-6">
-                            <div className="w-16 h-16 rounded-[1.5rem] bg-white/5 backdrop-blur-xl border border-white/10 flex items-center justify-center">
-                                <Zap className="w-8 h-8 text-[#8B5CF6]" />
+                    {/* Ambient Atmospheric Glows */}
+                    <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#8B5CF6]/10 blur-[150px] -translate-y-1/2 translate-x-1/4 pointer-events-none" />
+                    <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-[#24FF7C]/5 blur-[120px] translate-y-1/2 -translate-x-1/4 pointer-events-none" />
+                    
+                    <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                        <div className="space-y-6">
+                            <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-md">
+                                <span className="relative flex h-2 w-2">
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#24FF7C] opacity-75"></span>
+                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-[#24FF7C]"></span>
+                                </span>
+                                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#24FF7C]">System Live</span>
                             </div>
-                            <div>
-                                <h2 className="text-2xl font-black text-white uppercase tracking-tight">Active Neural Sync</h2>
-                                <p className="text-xs font-bold text-white/30 uppercase tracking-[0.2em] mt-1">Automated cross-platform state reconciliation</p>
+                            
+                            <div className="space-y-2">
+                                <h2 className="text-5xl lg:text-6xl font-black text-white tracking-tighter italic leading-[0.9]" style={{ fontFamily: 'var(--font-outfit), sans-serif' }}>
+                                    Continuous<br />
+                                    <span className="text-white/20">Sync.</span>
+                                </h2>
+                                <p className="text-lg font-medium text-white/40 max-w-md leading-relaxed">
+                                    Every commit. Every message. Perfectly aligned. Flowra monitors your entire stack in real-time.
+                                </p>
                             </div>
+
+                            <button className="flex items-center gap-3 px-8 py-4 rounded-2xl bg-white text-black font-black uppercase tracking-widest text-[11px] hover:scale-105 transition-transform active:scale-95 shadow-[0_10px_20px_rgba(255,255,255,0.1)]">
+                                Refresh All Nodes
+                                <RefreshCw className="w-4 h-4 animate-spin-slow" />
+                            </button>
                         </div>
 
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-                             <div className="space-y-1">
-                                 <p className="text-[10px] font-black text-white/20 uppercase tracking-widest">Active Links</p>
-                                 <p className="text-3xl font-black text-white font-[family-name:var(--font-outfit)] tracking-tighter">12/32</p>
-                             </div>
-                             <div className="space-y-1">
-                                 <p className="text-[10px] font-black text-white/20 uppercase tracking-widest">Global Status</p>
-                                 <div className="flex items-center gap-2">
-                                     <span className="text-3xl font-black text-[#8B5CF6] font-[family-name:var(--font-outfit)] tracking-tighter">Healthy</span>
-                                 </div>
-                             </div>
+                        <div className="grid grid-cols-2 gap-4 lg:gap-6">
+                            <div className="p-8 rounded-[2.5rem] bg-white/[0.03] border border-white/5 backdrop-blur-md group-hover:bg-white/[0.05] transition-colors">
+                                <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] mb-4 text-center">Synced Nodes</p>
+                                <div className="text-center">
+                                    <span className="text-5xl font-black text-white tracking-tighter" style={{ fontFamily: 'var(--font-outfit), sans-serif' }}>12</span>
+                                    <span className="text-xl font-black text-white/20 tracking-tighter">/32</span>
+                                </div>
+                                <div className="mt-4 h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                                    <motion.div 
+                                        initial={{ width: 0 }}
+                                        animate={{ width: '37%' }}
+                                        className="h-full bg-gradient-to-r from-[#8B5CF6] to-[#60A5FA]"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="p-8 rounded-[2.5rem] bg-white/[0.03] border border-white/5 backdrop-blur-md group-hover:bg-white/[0.05] transition-colors">
+                                <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] mb-4 text-center">Global Health</p>
+                                <div className="flex justify-center mb-2">
+                                    <CheckCircle2 className="w-12 h-12 text-[#24FF7C] drop-shadow-[0_0_15px_rgba(36,255,124,0.3)]" />
+                                </div>
+                                <p className="text-2xl font-black text-white text-center tracking-tighter" style={{ fontFamily: 'var(--font-outfit), sans-serif' }}>Stable</p>
+                                <p className="text-[9px] font-bold text-[#24FF7C] text-center uppercase tracking-widest mt-1 opacity-60">Verified Now</p>
+                            </div>
                         </div>
                     </div>
                 </motion.div>

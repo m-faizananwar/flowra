@@ -39,37 +39,37 @@ function StatCard({ label, value, icon: Icon, iconColor, iconBgColor, badge, del
             <div className="space-y-0.5">
                 <p className="text-white/30 text-[10px] font-black uppercase tracking-[0.2em]">{label}</p>
                 <h4 className="text-3xl font-black text-white tracking-tight" style={{ fontFamily: 'Outfit, sans-serif' }}>
-                    ${value.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                    {value.toLocaleString('en-US')}
                 </h4>
             </div>
         </motion.div>
     );
 }
 
-export function SummaryCards({ totalSaved = 1250.50, totalSpent = 8420.00 }: { totalSaved?: number, totalSpent?: number }) {
+export function SummaryCards({ totalSaved = 412, totalSpent = 842 }: { totalSaved?: number, totalSpent?: number }) {
     return (
         <div className="flex flex-col gap-6 h-full">
             <StatCard
-                label="Total Saved"
+                label="Verified Actions"
                 value={totalSaved}
                 icon={TrendingUp}
                 iconColor="text-[#24FF7C]"
                 iconBgColor="bg-[#24FF7C]/10"
                 badge={{
-                    text: "Live Tracking",
+                    text: "Proof of Work",
                     color: "text-[#24FF7C]",
                     bgColor: "bg-[#24FF7C]/10"
                 }}
                 delay={0.2}
             />
             <StatCard
-                label="Total Spent"
+                label="Total Workload"
                 value={totalSpent}
                 icon={ShoppingCart}
                 iconColor="text-[#FF8A8A]"
                 iconBgColor="bg-[#FF8A8A]/10"
                 badge={{
-                    text: "Updated Just Now",
+                    text: "Sprint Load",
                     color: "text-white/40",
                     bgColor: "bg-white/5"
                 }}
