@@ -1,7 +1,8 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Info, Zap } from "lucide-react";
+import { Info } from "lucide-react";
+import { Zap } from "lucide-react";
 
 interface TotalBalanceCardProps {
     totalBalance?: number;
