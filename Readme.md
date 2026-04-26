@@ -1,12 +1,12 @@
 # Flowra: Agentic Agile Orchestration & Performance Verification
 
 **Team Members (Group 3 - Section C):**
-1. Muhammad Faizan Anwar (Lead Developer / Architect)
+1. Muhammad Faizan Anwar (Lead Developer)
 2. Muhammad Waleed (Product Manager / Owner)
 3. Zarsham Waleed
 4. Haleema Imran
 5. Muhammad Anas
-6. Furqan Basra
+6. Furqan Basra (Scrum Master)
 
 ## 🚀 Overview
 **Flowra** is an intelligent orchestration platform designed to eliminate the friction of manual Agile management. By integrating directly with developer communication channels and version control systems, Flowra automatically tracks progress, verifies task completion, and synchronizes project state with Jira in real-time.
