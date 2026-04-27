@@ -1,0 +1,73 @@
+{
+  "models": {
+    "providers": {
+      "groq": {
+        "api": "openai-completions",
+        "baseUrl": "https://api.groq.com/openai/v1",
+        "injectNumCtxForOpenAICompat": false,
+        "apiKey": "${GROQ_API_KEY}",
+        "request": {
+          "allowPrivateNetwork": true
+        },
+        "models": [
+          {
+            "id": "llama-3.1-70b-versatile",
+            "name": "Llama 3.1 70B"
+          },
+          {
+            "id": "mixtral-8x7b-32768",
+            "name": "Mixtral 8x7B"
+          },
+          {
+            "id": "openai/gpt-oss-120b",
+            "name": "GPT OSS 120B"
+          }
+        ]
+      }
+    }
+  },
+  "gateway": {
+    "mode": "local",
+    "auth": {
+      "mode": "token",
+      "token": "cce8f4d4d2f50fd1cd9edb12034c7a8b95f4d6b2100ea3c0"
+    }
+  },
+  "meta": {
+    "lastTouchedVersion": "2026.4.24",
+    "lastTouchedAt": "2026-04-27T07:19:30.003Z"
+  },
+  "agents": {
+    "defaults": {
+      "models": {
+        "openrouter/auto": {
+          "alias": "OpenRouter"
+        }
+      },
+      "model": {
+        "primary": "openrouter/auto"
+      }
+    }
+  },
+  "auth": {
+    "profiles": {
+      "openrouter:default": {
+        "provider": "openrouter",
+        "mode": "api_key"
+      }
+    }
+  },
+  "wizard": {
+    "lastRunAt": "2026-04-27T07:19:22.746Z",
+    "lastRunVersion": "2026.4.24",
+    "lastRunCommand": "configure",
+    "lastRunMode": "local"
+  },
+  "plugins": {
+    "entries": {
+      "openrouter": {
+        "enabled": true
+      }
+    }
+  }
+}
