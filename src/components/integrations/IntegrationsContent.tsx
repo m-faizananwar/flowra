@@ -15,12 +15,13 @@ import { cn } from "@/lib/utils";
 import { PageTransition, staggerContainer, staggerItem } from "@/components/animations/PageTransition";
 import { DiscordConnectorModal } from "./DiscordConnectorModal";
 import { TelegramConnectorModal } from "./TelegramConnectorModal";
+import { SlackConnectorModal } from "./SlackConnectorModal";
 
 const MOCK_INTEGRATIONS = [
     { id: "gh", name: "GitHub", category: "Version Control", icon: "https://cdn.simpleicons.org/github/white", status: "connected", lastSync: "2m ago", color: "text-white" },
     { id: "jira", name: "Jira Cloud", category: "Project Management", icon: "https://cdn.simpleicons.org/jira/0052CC", status: "connected", lastSync: "15s ago", color: "text-blue-400" },
     { id: "discord", name: "Discord", category: "Communications", icon: "https://cdn.simpleicons.org/discord/5865F2", status: "not_connected", lastSync: "N/A", color: "text-indigo-400" },
-    { id: "slack", name: "Slack Enterprise", category: "Communications", icon: "https://www.vectorlogo.zone/logos/slack/slack-icon.svg", status: "connected", lastSync: "Live", color: "text-purple-400" },
+    { id: "slack", name: "Slack Enterprise", category: "Communications", icon: "https://www.vectorlogo.zone/logos/slack/slack-icon.svg", status: "not_connected", lastSync: "N/A", color: "text-purple-400" },
     { id: "telegram", name: "Telegram", category: "Communications", icon: "https://cdn.simpleicons.org/telegram/26A69A", status: "not_connected", lastSync: "N/A", color: "text-sky-400" },
     { id: "linear", name: "Linear", category: "Issue Tracking", icon: "https://cdn.simpleicons.org/linear/white", status: "not_connected", lastSync: "N/A", color: "text-indigo-400" },
     { id: "vercel", name: "Vercel", category: "Deployment", icon: "https://cdn.simpleicons.org/vercel/white", status: "connected", lastSync: "1h ago", color: "text-white" },
@@ -152,6 +153,7 @@ export function IntegrationsContent() {
                                 onClick={() => {
                                     if (app.id === "discord") setActiveModal("discord");
                                     if (app.id === "telegram") setActiveModal("telegram");
+                                    if (app.id === "slack") setActiveModal("slack");
                                 }}
                             >
                                 <div className="absolute top-0 right-0 w-32 h-32 bg-black/5 blur-[50px] rounded-full pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -204,7 +206,6 @@ export function IntegrationsContent() {
                 isOpen={activeModal === "discord"} 
                 onClose={() => setActiveModal(null)}
                 onSuccess={() => {
-                    // Logic to update UI status
                     toast.success("Discord interface active.");
                 }}
             />
@@ -212,10 +213,19 @@ export function IntegrationsContent() {
                 isOpen={activeModal === "telegram"} 
                 onClose={() => setActiveModal(null)}
                 onSuccess={() => {
-                    // Logic to update UI status
                     toast.success("Telegram tunnel active.");
                 }}
             />
+            <SlackConnectorModal 
+                isOpen={activeModal === "slack"} 
+                onClose={() => setActiveModal(null)}
+                onSuccess={() => {
+                    toast.success("Slack Enterprise bridge enabled.");
+                }}
+            />
+        </PageTransition>
+    );
+}
         </PageTransition>
     );
 }
