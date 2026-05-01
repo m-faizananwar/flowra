@@ -161,8 +161,9 @@ export function IntegrationsContent() {
                 {/* Integrations Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                     {MOCK_INTEGRATIONS.map((app) => {
-                        const integration = userIntegrations.find(ui => ui.service_name === app.id);
-                        const isConnected = !!integration;
+                        const integrations = userIntegrations.filter(ui => ui.service_name === app.id);
+                        const isConnected = integrations.length > 0;
+                        const firstIntegration = integrations[0];
                         
                         return (
                             <motion.div 
@@ -197,20 +198,30 @@ export function IntegrationsContent() {
                                                 ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" 
                                                 : "bg-white/5 text-white/20 border-white/10 group-hover:bg-black/5 group-hover:text-black/40 group-hover:border-black/5"
                                          )}>
-                                              {isConnected ? "Connected" : "Not Linked"}
+                                              {isConnected ? (integrations.length > 1 ? `${integrations.length} Accounts` : "Connected") : "Not Linked"}
                                          </div>
                                          <p className={cn(
                                             "text-[8px] font-black uppercase tracking-widest mt-2 transition-colors",
                                             isConnected ? "text-black/20" : "text-white/10 group-hover:text-black/20"
                                          )}>
-                                            {isConnected ? (integration.last_sync_at ? new Date(integration.last_sync_at).toLocaleDateString() : "Active") : "N/A"}
+                                            {isConnected ? (firstIntegration.last_sync_at ? new Date(firstIntegration.last_sync_at).toLocaleDateString() : "Active") : "N/A"}
                                          </p>
                                     </div>
                                 </div>
 
                                 <div className="mb-8">
                                     <h4 className={cn("text-xl font-black transition-colors", isConnected ? "text-black" : "text-white group-hover:text-black")}>{app.name}</h4>
-                                    <p className={cn("text-[10px] font-black uppercase tracking-[0.2em] mt-1 transition-colors", isConnected ? "text-black/40" : "text-white/20 group-hover:text-black/40")}>{app.category}</p>
+                                    <div className="flex items-center gap-2 mt-1">
+                                        <p className={cn("text-[10px] font-black uppercase tracking-[0.2em] transition-colors", isConnected ? "text-black/40" : "text-white/20 group-hover:text-black/40")}>{app.category}</p>
+                                        {isConnected && (
+                                            <>
+                                                <div className="w-1 h-1 rounded-full bg-black/10 group-hover:bg-black/10 transition-colors" />
+                                                <p className="text-[10px] font-black text-violet-500 uppercase tracking-widest">
+                                                    Hierarchy Active
+                                                </p>
+                                            </>
+                                        )}
+                                    </div>
                                 </div>
 
                                 <div className={cn("pt-6 border-t flex items-center justify-between transition-colors", isConnected ? "border-black/5" : "border-white/[0.03] group-hover:border-black/5")}>
@@ -219,9 +230,9 @@ export function IntegrationsContent() {
                                         Configure
                                     </button>
                                      {isConnected ? (
-                                        <div className="flex items-center gap-2 text-emerald-500 transition-colors">
-                                            <RefreshCw className="w-3.5 h-3.5 animate-spin-slow" />
-                                            <span className="text-[9px] font-black uppercase tracking-widest">Live Syncing</span>
+                                        <div className="flex items-center gap-2 text-violet-500 transition-colors">
+                                            <Zap className="w-3.5 h-3.5 animate-pulse" />
+                                            <span className="text-[9px] font-black uppercase tracking-widest">Multi-Channel Active</span>
                                         </div>
                                     ) : (
                                         <button className="flex items-center gap-1.5 text-[#8B5CF6] group/btn group-hover:text-black transition-colors">

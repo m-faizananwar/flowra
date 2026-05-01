@@ -152,13 +152,36 @@ export function TelegramConnectorModal({ isOpen, onClose, onSuccess, initialData
                         {/* Content */}
                         <div className="p-8">
                             {/* Step Indicator */}
-                            <div className="flex gap-2 mb-8">
+                            <div className="flex gap-2 mb-6">
                                 {[1, 2, 3].map((s) => (
                                     <div 
                                         key={s}
                                         className={`flex-1 h-1.5 rounded-full transition-all duration-500 ${s <= step ? 'bg-[#0088CC]' : 'bg-white/5'}`}
                                     />
                                 ))}
+                            </div>
+
+                            {/* Persistent Instructions */}
+                            <div className="mb-6 p-4 rounded-2xl bg-[#0088CC]/5 border border-[#0088CC]/10 flex items-center justify-between gap-4">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 rounded-xl bg-[#0088CC]/10 flex items-center justify-center border border-[#0088CC]/20">
+                                        <MessageCircle className="w-4 h-4 text-[#0088CC]" />
+                                    </div>
+                                    <div>
+                                        <p className="text-[10px] font-black text-white uppercase tracking-tight">Get Chat ID</p>
+                                        <code className="text-[11px] font-black text-[#0088CC]">/myid</code>
+                                    </div>
+                                </div>
+                                <div className="h-8 w-px bg-white/5" />
+                                <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 rounded-xl bg-[#0088CC]/10 flex items-center justify-center border border-[#0088CC]/20">
+                                        <Zap className="w-4 h-4 text-[#0088CC]" />
+                                    </div>
+                                    <div>
+                                        <p className="text-[10px] font-black text-white uppercase tracking-tight">Initialize</p>
+                                        <code className="text-[11px] font-black text-[#0088CC]">/start</code>
+                                    </div>
+                                </div>
                             </div>
 
                             {step === 1 ? (
@@ -183,13 +206,6 @@ export function TelegramConnectorModal({ isOpen, onClose, onSuccess, initialData
                                             <ExternalLink className="w-3.5 h-3.5" />
                                             Open Telegram
                                         </button>
-                                    </div>
-
-                                    <div className="p-4 rounded-2xl bg-amber-500/5 border border-amber-500/10 flex gap-3">
-                                        <Info className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
-                                        <p className="text-[10px] font-bold text-amber-500/60 leading-tight">
-                                            Note: You must send <span className="text-white font-black">/start</span> to the bot first to initialize the handshake.
-                                        </p>
                                     </div>
 
                                     <button 
