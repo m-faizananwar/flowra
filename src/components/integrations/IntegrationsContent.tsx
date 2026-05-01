@@ -12,6 +12,8 @@ import {
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
+import { supabase } from "@/lib/supabase";
 import { PageTransition, staggerContainer, staggerItem } from "@/components/animations/PageTransition";
 import { DiscordConnectorModal } from "./DiscordConnectorModal";
 import { TelegramConnectorModal } from "./TelegramConnectorModal";
@@ -31,10 +33,27 @@ const MOCK_INTEGRATIONS = [
 export function IntegrationsContent() {
     const [isLoading, setIsLoading] = useState(true);
     const [activeModal, setActiveModal] = useState<string | null>(null);
+    const [userIntegrations, setUserIntegrations] = useState<any[]>([]);
+
+    const fetchIntegrations = async () => {
+        try {
+            const { data, error } = await supabase
+                .from('integrations')
+                .select('*');
+            
+            if (error) throw error;
+            setUserIntegrations(data || []);
+        } catch (error) {
+            console.error('Fetch error:', error);
+        }
+    };
 
     useEffect(() => {
-        const timer = setTimeout(() => setIsLoading(false), 800);
-        return () => clearTimeout(timer);
+        const init = async () => {
+            await fetchIntegrations();
+            setIsLoading(false);
+        };
+        init();
     }, []);
 
     if (isLoading) {
@@ -141,15 +160,21 @@ export function IntegrationsContent() {
 
                 {/* Integrations Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                    {MOCK_INTEGRATIONS.map((app, i) => {
-                        const isConnected = app.status === "connected";
-
+                    {MOCK_INTEGRATIONS.map((app) => {
+                        const integration = userIntegrations.find(ui => ui.service_name === app.id);
+                        const isConnected = !!integration;
+                        
                         return (
-                            <motion.div
+                            <motion.div 
                                 key={app.id}
                                 variants={staggerItem}
                                 whileHover={{ y: -8, scale: 1.01 }}
-                                className="p-8 rounded-[2.5rem] bg-white/[0.03] backdrop-blur-2xl border border-white/5 hover:border-white/10 hover:bg-white transition-all duration-500 cursor-pointer group relative overflow-hidden"
+                                className={cn(
+                                    "p-8 rounded-[2.5rem] backdrop-blur-2xl border transition-all duration-500 cursor-pointer group relative overflow-hidden",
+                                    isConnected 
+                                        ? "bg-white border-white/20 shadow-[0_20px_50px_-10px_rgba(255,255,255,0.1)]" 
+                                        : "bg-white/[0.03] border-white/5 hover:border-white/10 hover:bg-white"
+                                )}
                                 onClick={() => {
                                     if (app.id === "discord") setActiveModal("discord");
                                     if (app.id === "telegram") setActiveModal("telegram");
@@ -159,34 +184,44 @@ export function IntegrationsContent() {
                                 <div className="absolute top-0 right-0 w-32 h-32 bg-black/5 blur-[50px] rounded-full pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity" />
                                 
                                 <div className="flex items-center justify-between mb-8">
-                                    <div className={cn("w-14 h-14 rounded-2xl bg-white/[0.04] backdrop-blur-xl border border-white/5 flex items-center justify-center transition-colors")}>
-                                        <img src={app.icon} alt={app.name} className="w-7 h-7 opacity-80 group-hover:opacity-100 transition-opacity" />
+                                    <div className={cn(
+                                        "w-14 h-14 rounded-2xl flex items-center justify-center transition-colors border",
+                                        isConnected ? "bg-black/[0.03] border-black/5" : "bg-white/[0.04] backdrop-blur-xl border-white/5 group-hover:bg-black/[0.03] group-hover:border-black/5"
+                                    )}>
+                                        <img src={app.icon} alt={app.name} className={cn("w-7 h-7 transition-opacity", isConnected ? "opacity-100" : "opacity-80 group-hover:opacity-100")} />
                                     </div>
                                     <div className="flex flex-col items-end">
                                          <div className={cn(
                                               "px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest border backdrop-blur-md transition-colors",
-                                              isConnected ? "bg-[#8B5CF6]/10 text-[#8B5CF6] border-[#8B5CF6]/20 group-hover:bg-black/5 group-hover:text-black group-hover:border-black/5" : "bg-white/5 text-white/20 border-white/10 group-hover:bg-black/5 group-hover:text-black/40 group-hover:border-black/5"
+                                              isConnected 
+                                                ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" 
+                                                : "bg-white/5 text-white/20 border-white/10 group-hover:bg-black/5 group-hover:text-black/40 group-hover:border-black/5"
                                          )}>
                                               {isConnected ? "Connected" : "Not Linked"}
                                          </div>
-                                         <p className="text-[8px] font-black text-white/10 uppercase tracking-widest mt-2 group-hover:text-black/20 transition-colors">{app.lastSync}</p>
+                                         <p className={cn(
+                                            "text-[8px] font-black uppercase tracking-widest mt-2 transition-colors",
+                                            isConnected ? "text-black/20" : "text-white/10 group-hover:text-black/20"
+                                         )}>
+                                            {isConnected ? (integration.last_sync_at ? new Date(integration.last_sync_at).toLocaleDateString() : "Active") : "N/A"}
+                                         </p>
                                     </div>
                                 </div>
 
                                 <div className="mb-8">
-                                    <h4 className="text-xl font-black text-white group-hover:text-black transition-colors">{app.name}</h4>
-                                    <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.2em] mt-1 group-hover:text-black/40 transition-colors">{app.category}</p>
+                                    <h4 className={cn("text-xl font-black transition-colors", isConnected ? "text-black" : "text-white group-hover:text-black")}>{app.name}</h4>
+                                    <p className={cn("text-[10px] font-black uppercase tracking-[0.2em] mt-1 transition-colors", isConnected ? "text-black/40" : "text-white/20 group-hover:text-black/40")}>{app.category}</p>
                                 </div>
 
-                                <div className="pt-6 border-t border-white/[0.03] group-hover:border-black/5 flex items-center justify-between transition-colors">
-                                    <button className="flex items-center gap-2 text-[10px] font-black text-white/40 uppercase tracking-widest hover:text-white group-hover:text-black/40 group-hover:hover:text-black transition-colors">
+                                <div className={cn("pt-6 border-t flex items-center justify-between transition-colors", isConnected ? "border-black/5" : "border-white/[0.03] group-hover:border-black/5")}>
+                                    <button className={cn("flex items-center gap-2 text-[10px] font-black uppercase tracking-widest transition-colors", isConnected ? "text-black/40 hover:text-black" : "text-white/40 hover:text-white group-hover:text-black/40 group-hover:hover:text-black")}>
                                         <Settings2 className="w-3.5 h-3.5" />
                                         Configure
                                     </button>
                                      {isConnected ? (
-                                        <div className="flex items-center gap-2 text-[#8B5CF6] group-hover:text-black transition-colors">
+                                        <div className="flex items-center gap-2 text-emerald-500 transition-colors">
                                             <RefreshCw className="w-3.5 h-3.5 animate-spin-slow" />
-                                            <span className="text-[9px] font-black uppercase tracking-widest">Active</span>
+                                            <span className="text-[9px] font-black uppercase tracking-widest">Live Syncing</span>
                                         </div>
                                     ) : (
                                         <button className="flex items-center gap-1.5 text-[#8B5CF6] group/btn group-hover:text-black transition-colors">
@@ -205,27 +240,30 @@ export function IntegrationsContent() {
             <DiscordConnectorModal 
                 isOpen={activeModal === "discord"} 
                 onClose={() => setActiveModal(null)}
+                initialData={userIntegrations.find(ui => ui.service_name === "discord")}
                 onSuccess={() => {
+                    fetchIntegrations();
                     toast.success("Discord interface active.");
                 }}
             />
             <TelegramConnectorModal 
                 isOpen={activeModal === "telegram"} 
                 onClose={() => setActiveModal(null)}
+                initialData={userIntegrations.find(ui => ui.service_name === "telegram")}
                 onSuccess={() => {
+                    fetchIntegrations();
                     toast.success("Telegram tunnel active.");
                 }}
             />
             <SlackConnectorModal 
                 isOpen={activeModal === "slack"} 
                 onClose={() => setActiveModal(null)}
+                initialData={userIntegrations.find(ui => ui.service_name === "slack")}
                 onSuccess={() => {
+                    fetchIntegrations();
                     toast.success("Slack Enterprise bridge enabled.");
                 }}
             />
-        </PageTransition>
-    );
-}
         </PageTransition>
     );
 }
