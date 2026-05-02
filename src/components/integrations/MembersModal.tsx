@@ -39,6 +39,11 @@ const BrandIcons: Record<string, any> = {
     <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
       <path d="M11.944 0C5.346 0 0 5.346 0 11.944s5.346 11.944 11.944 11.944 11.944-5.346 11.944-11.944S18.542 0 11.944 0zm5.812 8.121l-1.994 9.404c-.15.674-.55 8.38-1.112.562l-3.037-2.237-1.462 1.406c-.162.162-.3.3-.612.3l.212-3.012 5.487-4.962c.237-.212-.05-.337-.362-.125l-6.787 4.275-2.925-.912c-.637-.2-.65-.637.137-.937l11.413-4.4c.525-.187.987.125.837.737z" />
     </svg>
+  ),
+  github: (props: any) => (
+    <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+      <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.041-1.416-4.041-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+    </svg>
   )
 };
 
@@ -79,7 +84,7 @@ export default function MembersModal({ isOpen, onClose, integration }: MembersMo
 
     // 0. Pre-Check for Fusion (Merging two Humans)
     if (!isFusionConfirmed) {
-      for (const svc of ['discord', 'slack', 'telegram']) {
+      for (const svc of ['github', 'discord', 'slack', 'telegram']) {
         const pendingProfile = pendingChanges.links[svc];
         const originalProfile = (members.find(m => m.id === editingId))?.links[svc];
         
@@ -115,7 +120,7 @@ export default function MembersModal({ isOpen, onClose, integration }: MembersMo
       }
 
       // 2. Handle Link Changes and FUSION
-      for (const svc of ['discord', 'slack', 'telegram']) {
+      for (const svc of ['github', 'discord', 'slack', 'telegram']) {
         const pendingProfile = pendingChanges.links[svc];
         const originalProfile = original.links[svc];
 
@@ -179,24 +184,24 @@ export default function MembersModal({ isOpen, onClose, integration }: MembersMo
       // Identity-First Linking: Fetch all platform profiles linked to these members
       const { data: profiles } = await supabase
         .from("integration_members")
-        .select("*, integrations(service_name)")
+        .select("*, integrations!inner(service_name)")
         .in("member_id", memberIds);
 
-      const grouped: Record<string, any[]> = { discord: [], slack: [], telegram: [] };
+      const grouped: Record<string, any[]> = { github: [], discord: [], slack: [], telegram: [] };
       
-      // Also fetch unlinked profiles for this specific integration to allow linking
+      // Also fetch unlinked profiles for ALL integrations belonging to this user to allow cross-linking
       const { data: unlinkedProfiles } = await supabase
         .from("integration_members")
-        .select("*, integrations(service_name)")
-        .eq("integration_id", integration.id)
-        .is("member_id", null);
+        .select("*, integrations!inner(service_name, user_id)")
+        .is("member_id", null)
+        .eq("integrations.user_id", integration.user_id);
 
       [...(profiles || []), ...(unlinkedProfiles || [])].forEach(p => {
-        const serviceName = p.integrations?.service_name || p.service_name;
+        const serviceName = p.integrations?.service_name;
         if (!p || !serviceName) return;
         const svc = serviceName.toLowerCase();
         if (!grouped[svc]) grouped[svc] = [];
-        // Avoid duplicates if a profile is both linked and in the unlinked list (unlikely but safe)
+        // Avoid duplicates and ensure we only show profiles for the correct service
         if (!grouped[svc].find(gp => gp.id === p.id)) {
           grouped[svc].push(p);
         }
@@ -276,9 +281,10 @@ export default function MembersModal({ isOpen, onClose, integration }: MembersMo
       m.role?.toLowerCase().includes(searchQuery.toLowerCase());
     if (!matchesSearch) return false;
     
-    // Default behavior: Show anyone who has at least one link OR matches search
-    // This removes the restrictive "Discord Only" filter unless specifically searched
-    return true;
+    // Contextual Filter: Only show members linked to this platform unless showAll is active
+    if (showAll) return true;
+    const svc = integration.service_name?.toLowerCase();
+    return !!m.links?.[svc];
   });
 
   return (
@@ -288,7 +294,7 @@ export default function MembersModal({ isOpen, onClose, integration }: MembersMo
         onClick={onClose} 
       />
       
-      <div className="relative w-full max-w-6xl bg-[#0F0F12] border border-white/10 rounded-3xl overflow-hidden shadow-[0_0_80px_-20px_rgba(0,0,0,0.8)] flex flex-col h-[85vh] animate-in zoom-in-95 duration-300">
+      <div className="relative w-full max-w-[1450px] bg-[#0F0F12] border border-white/10 rounded-3xl overflow-hidden shadow-[0_0_80px_-20px_rgba(0,0,0,0.8)] flex flex-col h-[85vh] animate-in zoom-in-95 duration-300 mx-4">
         
         {showFusionConfirm && (
           <div className="absolute inset-0 z-[210] bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-300">
@@ -423,6 +429,26 @@ export default function MembersModal({ isOpen, onClose, integration }: MembersMo
             </div>
           </div>
           <div className="flex items-center gap-4">
+            <div className="flex items-center bg-white/5 rounded-xl border border-white/5 p-1 mr-2">
+              <button 
+                onClick={() => setShowAll(false)}
+                className={cn(
+                  "px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all",
+                  !showAll ? "bg-violet-600 text-white shadow-lg" : "text-white/30 hover:text-white"
+                )}
+              >
+                {integration.service_name} Only
+              </button>
+              <button 
+                onClick={() => setShowAll(true)}
+                className={cn(
+                  "px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all",
+                  showAll ? "bg-violet-600 text-white shadow-lg" : "text-white/30 hover:text-white"
+                )}
+              >
+                Show All
+              </button>
+            </div>
             <button 
               onClick={handleAddMember}
               className="px-6 py-3 bg-violet-500 hover:bg-violet-600 text-white rounded-xl text-[11px] font-black uppercase tracking-widest transition-all shadow-xl shadow-violet-500/20 flex items-center gap-3 border border-violet-400/50 group"
@@ -452,21 +478,19 @@ export default function MembersModal({ isOpen, onClose, integration }: MembersMo
           </div>
         </div>
 
-        <div className="px-8 pt-6 pb-0 overflow-x-auto custom-scrollbar flex-shrink-0">
-          <div className="min-w-[1000px]">
-            <div className="grid grid-cols-[1.8fr_1.5fr_1fr_1fr_1fr_120px] gap-4 px-6 py-4 bg-white/[0.03] rounded-t-2xl border-x border-t border-white/5 text-[10px] text-white/30 font-black uppercase tracking-[0.2em]">
+        <div className="flex-1 overflow-x-auto custom-scrollbar px-8 pb-10">
+          <div className="min-w-[1350px] space-y-4 pr-12">
+            {/* Unified Header */}
+            <div className="grid grid-cols-[2.6fr_1.6fr_1fr_1fr_1fr_1fr_140px] gap-8 px-12 py-6 bg-white/[0.03] rounded-[2.5rem] border border-white/5 text-[10px] text-white/40 font-black uppercase tracking-[0.2em] items-center mt-6 sticky top-0 z-20 backdrop-blur-xl">
               <div>Team Alias</div>
               <div>Prof. Role</div>
-              <div className="flex items-center gap-2"><BrandIcons.discord className="w-3 h-3 opacity-40" /> Discord</div>
-              <div className="flex items-center gap-2"><BrandIcons.slack className="w-3 h-3 opacity-40" /> Slack</div>
-              <div className="flex items-center gap-2"><BrandIcons.telegram className="w-3 h-3 opacity-40" /> Telegram</div>
+              <div className="flex items-center gap-2"><BrandIcons.github className="w-4 h-4 opacity-60" /> GitHub</div>
+              <div className="flex items-center gap-2"><BrandIcons.discord className="w-4 h-4 opacity-60" /> Discord</div>
+              <div className="flex items-center gap-2"><BrandIcons.slack className="w-4 h-4 opacity-60" /> Slack</div>
+              <div className="flex items-center gap-2"><BrandIcons.telegram className="w-4 h-4 opacity-60" /> Telegram</div>
               <div className="text-right pr-4">Actions</div>
             </div>
-          </div>
-        </div>
 
-        <div className="flex-1 overflow-x-auto custom-scrollbar px-8 pb-10 mt-6">
-          <div className="min-w-[1000px]">
             {loading ? (
               <div className="flex flex-col items-center justify-center h-[400px] gap-5">
                 <div className="w-12 h-12 border-[3px] border-violet-500 border-t-transparent rounded-full animate-spin shadow-[0_0_15px_rgba(139,92,246,0.3)]" />
@@ -486,200 +510,185 @@ export default function MembersModal({ isOpen, onClose, integration }: MembersMo
                 </p>
               </div>
             ) : (
-              <div className="space-y-4 pb-20">
+              <div className="space-y-3">
                 {filteredMembers.map((member) => {
                   const isEditing = editingId === member.id;
                   return (
                     <div 
                       key={member.id}
                       className={cn(
-                        "group relative rounded-[2rem] border transition-all duration-500", // REMOVED overflow-hidden
+                        "group relative rounded-[2rem] border transition-all duration-500",
                         isEditing 
-                          ? "bg-violet-500/[0.04] border-violet-500/40 shadow-[0_20px_50px_-20px_rgba(139,92,246,0.3)] ring-1 ring-violet-500/20 z-[50]" 
-                          : "bg-white/[0.02] border-white/5 hover:border-white/10 hover:bg-white/[0.04] hover:translate-y-[-2px] hover:shadow-[0_15px_30px_-10px_rgba(0,0,0,0.5)] z-[1]"
+                          ? "bg-violet-600/[0.08] border-violet-500/50 shadow-[0_20px_50px_-20px_rgba(139,92,246,0.4)] ring-1 ring-violet-500/20 z-[100]" 
+                          : "bg-white/[0.02] border-white/5 hover:border-violet-500/30 hover:bg-white/[0.04] hover:translate-y-[-2px] hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.6)]"
                       )}
                     >
-                      {isEditing && <div className="absolute top-0 left-0 w-1 h-full bg-violet-500 shadow-[0_0_15px_rgba(139,92,246,0.8)]" />}
+                      {isEditing && <div className="absolute top-0 left-0 w-1 h-full bg-violet-500 shadow-[0_0_20px_rgba(139,92,246,1)] rounded-l-[2rem]" />}
                       <div className={cn(
-                        "grid grid-cols-[1.8fr_1.5fr_1fr_1fr_1fr_120px] gap-4 items-center px-6 transition-all duration-500",
-                        isEditing ? "py-8" : "py-5"
+                        "grid grid-cols-[2.6fr_1.6fr_1fr_1fr_1fr_1fr_140px] gap-8 items-center px-12 transition-all duration-500",
+                        isEditing ? "py-8" : "py-7"
                       )}>
                         <div className="relative">
                           {isEditing ? (
-                            <div className="flex flex-col gap-1.5 animate-in slide-in-from-left-2 duration-300">
-                              <label className="text-[8px] text-violet-400 font-black uppercase tracking-widest pl-1">Full Name</label>
+                            <div className="flex flex-col gap-2 animate-in slide-in-from-left-2 duration-300">
                               <input 
                                 type="text"
                                 autoFocus
                                 value={pendingChanges?.full_name || ""}
-                                onChange={(e) => setPendingChanges({ ...pendingChanges, full_name: e.target.value })}
-                                className="w-full bg-black/40 border border-violet-500/30 rounded-xl py-2 px-4 text-xs text-white focus:outline-none focus:border-violet-500/60 transition-all placeholder:text-white/10"
-                                placeholder="Enter name..."
-                              />
-                              <label className="text-[8px] text-violet-400 font-black uppercase tracking-widest pl-1 mt-1">Alias</label>
-                              <input 
-                                type="text"
-                                value={pendingChanges?.alias || ""}
-                                onChange={(e) => setPendingChanges({ ...pendingChanges, alias: e.target.value })}
-                                className="w-full bg-black/40 border border-violet-500/30 rounded-xl py-2 px-4 text-[10px] text-violet-300/80 focus:outline-none focus:border-violet-500/60 transition-all placeholder:text-white/10 font-bold"
-                                placeholder="@alias..."
+                                onChange={(e) => setPendingChanges({ ...pendingChanges, full_name: e.target.value, alias: e.target.value.toLowerCase().startsWith('@') ? e.target.value.toLowerCase() : `@${e.target.value.toLowerCase().replace(/\s+/g, '_')}` })}
+                                className="w-full bg-black/60 border border-violet-500/40 rounded-xl py-3 px-4 text-sm text-white focus:outline-none focus:border-violet-500 transition-all shadow-inner font-bold"
+                                placeholder="Primary Identity"
                               />
                             </div>
                           ) : (
-                            <div className="text-sm font-bold text-white/90 truncate flex items-center gap-4">
-                              <div className="relative w-10 h-10 rounded-xl overflow-hidden border border-white/10 bg-black/40 flex-shrink-0 shadow-lg">
+                            <div className="flex items-center gap-5">
+                              <div className="relative w-14 h-14 rounded-2xl overflow-hidden border border-white/10 bg-black/40 flex-shrink-0 shadow-2xl group-hover:border-violet-500/50 transition-colors">
                                 {member.avatar_url ? (
                                   <img src={member.avatar_url} alt="" className="w-full h-full object-cover" />
                                 ) : (
                                   <div className="w-full h-full flex items-center justify-center bg-violet-500/10">
-                                    <Users className="w-5 h-5 text-violet-400/40" />
+                                    <Users className="w-7 h-7 text-violet-400/30" />
                                   </div>
                                 )}
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
                               </div>
                               <div className="flex flex-col min-w-0">
-                                <span className="truncate leading-tight">{member.full_name || "Unnamed Entity"}</span>
-                                <span className="text-[10px] text-white/30 font-black uppercase tracking-widest mt-0.5 truncate">{member.alias || "@unknown"}</span>
+                                <span className="text-lg font-black text-white group-hover:text-violet-400 transition-colors truncate tracking-tight leading-none">{member.full_name || "Unnamed Entity"}</span>
+                                <span className="text-[11px] text-white/30 font-black uppercase tracking-[0.2em] mt-1 truncate">{member.alias || "@unknown"}</span>
                               </div>
                             </div>
                           )}
                         </div>
-                        <div className="relative">
+
+                        <div className="relative dropdown-container">
                           {isEditing ? (
-                            <div className="flex flex-col gap-1.5 animate-in slide-in-from-left-2 duration-300 delay-75">
-                              <label className="text-[8px] text-violet-400 font-black uppercase tracking-widest pl-1">Professional Role</label>
+                            <>
                               <button 
                                 onClick={() => setActiveDropdown(activeDropdown?.id === member.id && activeDropdown.type === 'role' ? null : { id: member.id, type: 'role' })}
-                                className="w-full bg-black/40 border border-violet-500/30 rounded-xl py-2.5 px-4 text-xs text-white flex items-center justify-between hover:border-violet-500/60 transition-all group/role"
+                                className="w-full bg-black/60 border border-violet-500/40 rounded-xl py-3 px-4 text-xs text-white flex items-center justify-between hover:border-violet-500 transition-all shadow-inner"
                               >
-                                <span className={cn("truncate", !pendingChanges?.role && "text-white/20")}>{pendingChanges?.role || "Assign Role..."}</span>
-                                <ChevronDown className={cn("w-3 h-3 text-white/20 transition-transform duration-300", activeDropdown?.id === member.id && activeDropdown.type === 'role' && "rotate-180 text-violet-400")} />
+                                <span className={cn("truncate", !pendingChanges?.role && "text-white/20")}>{pendingChanges?.role || "Role"}</span>
+                                <ChevronDown className="w-4 h-4 text-violet-400" />
                               </button>
                               {activeDropdown?.id === member.id && activeDropdown.type === 'role' && (
-                                <div className="absolute top-[110%] left-0 w-full bg-[#16161A] border border-white/10 rounded-2xl shadow-[0_20px_50px_-10px_rgba(0,0,0,0.8)] z-[110] overflow-hidden animate-in fade-in zoom-in-95 duration-200 backdrop-blur-xl">
-                                  <div className="p-3 border-b border-white/5 bg-white/[0.02]">
-                                    <div className="relative">
-                                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/20" />
-                                      <input 
-                                        type="text"
-                                        autoFocus
-                                        value={roleSearch}
-                                        onChange={(e) => setRoleSearch(e.target.value)}
-                                        onKeyDown={(e) => {
-                                          if (e.key === 'Enter' && roleSearch) {
-                                            setPendingChanges({ ...pendingChanges, role: roleSearch });
-                                            setActiveDropdown(null);
-                                            setRoleSearch("");
-                                          }
-                                        }}
-                                        placeholder="Search or Create..."
-                                        className="w-full bg-black/60 border border-white/10 rounded-lg py-2 pl-9 pr-3 text-[11px] text-white focus:outline-none focus:border-violet-500/40"
-                                      />
-                                    </div>
+                                <div className="absolute top-[110%] left-0 w-64 bg-[#16161A] border border-white/10 rounded-2xl shadow-[0_30px_60px_-15px_rgba(0,0,0,0.8)] z-[200] overflow-hidden animate-in fade-in zoom-in-95 backdrop-blur-2xl ring-1 ring-white/5">
+                                  <div className="p-2 border-b border-white/5 bg-white/[0.02]">
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-white/20 px-3 py-1">Select Role</span>
                                   </div>
-                                  <div className="max-h-48 overflow-y-auto custom-scrollbar p-1.5">
-                                    {PRESET_ROLES.filter(r => r.toLowerCase().includes(roleSearch.toLowerCase())).map(r => (
-                                      <button 
-                                        key={r}
-                                        onClick={() => { setPendingChanges({ ...pendingChanges, role: r }); setActiveDropdown(null); }}
-                                        className="w-full text-left px-3 py-2.5 text-[11px] text-white/60 hover:bg-violet-500/20 hover:text-white rounded-xl transition-all flex items-center justify-between group"
+                                  <div className="max-h-[280px] overflow-y-auto custom-scrollbar p-1">
+                                    {WORKSPACE_ROLES.map((role) => (
+                                      <button
+                                        key={role}
+                                        onClick={() => {
+                                          setPendingChanges({ ...pendingChanges, role });
+                                          setActiveDropdown(null);
+                                        }}
+                                        className={cn(
+                                          "w-full text-left px-4 py-3 rounded-xl text-xs transition-all flex items-center justify-between group/item",
+                                          pendingChanges?.role === role ? "bg-violet-600 text-white font-bold" : "text-white/60 hover:bg-white/5 hover:text-white"
+                                        )}
                                       >
-                                        {r}
-                                        {pendingChanges?.role === r && <CheckCircle2 className="w-3.5 h-3.5 text-violet-400 animate-in zoom-in" />}
+                                        <span>{role}</span>
+                                        {pendingChanges?.role === role && <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />}
                                       </button>
                                     ))}
-                                    {roleSearch && !PRESET_ROLES.some(r => r.toLowerCase() === roleSearch.toLowerCase()) && (
-                                      <button 
-                                        onClick={() => { setPendingChanges({ ...pendingChanges, role: roleSearch }); setActiveDropdown(null); setRoleSearch(""); }}
-                                        className="w-full text-left px-3 py-2.5 text-[11px] text-violet-400 font-black uppercase tracking-widest hover:bg-violet-500/10 rounded-xl transition-all"
-                                      >
-                                        + Create "{roleSearch}"
-                                      </button>
-                                    )}
                                   </div>
                                 </div>
                               )}
-                            </div>
+                            </>
                           ) : (
-                            <div className="text-[10px] font-black uppercase tracking-[0.15em] text-violet-400 bg-violet-500/10 border border-violet-500/20 px-3 py-1.5 rounded-lg inline-flex items-center gap-2 group-hover:bg-violet-500/20 transition-all">
-                              <Settings2 className="w-3 h-3 opacity-40" />
-                              {member.role || "Unassigned"}
+                            <div className="inline-flex px-5 py-2.5 rounded-2xl bg-violet-600 text-white text-[11px] font-black uppercase tracking-widest shadow-[0_15px_25px_-5px_rgba(139,92,246,0.6)] border border-violet-400/50 hover:bg-violet-500 transition-all cursor-default group-hover:scale-105">
+                              {member.role || "UNASSIGNED"}
                             </div>
                           )}
                         </div>
-                        {['discord', 'slack', 'telegram'].map((svc, idx) => {
+
+                        {['github', 'discord', 'slack', 'telegram'].map((svc, idx) => {
                           const linkedProfile = member.links?.[svc.toLowerCase()];
                           const profiles = integrationProfiles[svc.toLowerCase()] || [];
                           const dropdownId = `${member.id}-${svc}`;
+                          
                           return (
-                            <div key={svc} className="relative">
+                            <div key={svc} className="relative dropdown-container">
                               {isEditing ? (
-                                <div className={cn("flex flex-col gap-1.5 animate-in slide-in-from-left-2 duration-300", idx === 0 && "delay-100", idx === 1 && "delay-150", idx === 2 && "delay-[200ms]")}>
-                                  <label className="text-[8px] text-white/20 font-black uppercase tracking-widest pl-1">{svc}</label>
+                                <>
                                   <button 
                                     onClick={() => setActiveDropdown(activeDropdown?.id === dropdownId ? null : { id: dropdownId, type: svc })}
                                     className={cn(
-                                      "w-full rounded-xl py-2.5 px-4 text-[10px] flex items-center justify-between transition-all border font-bold uppercase tracking-wider",
+                                      "w-full rounded-xl py-3 px-4 text-[10px] flex items-center justify-between transition-all border font-black uppercase tracking-widest shadow-inner",
                                       pendingChanges?.links?.[svc] 
-                                        ? "bg-emerald-500/5 border-emerald-500/30 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.1)]" 
-                                        : "bg-black/40 border-white/5 text-white/20 hover:border-white/10"
+                                        ? "bg-white text-black border-white shadow-lg" 
+                                        : "bg-black/60 border-white/10 text-white/30 hover:border-violet-500/50"
                                     )}
                                   >
-                                    <span className="truncate">{pendingChanges?.links?.[svc] ? pendingChanges.links[svc].username : "Select..."}</span>
-                                    <ChevronDown className="w-3 h-3 opacity-20" />
+                                    <span className="truncate">{pendingChanges?.links?.[svc] ? pendingChanges.links[svc].username : "LINK"}</span>
+                                    <ChevronDown className="w-3.5 h-3.5 opacity-60" />
                                   </button>
                                   {activeDropdown?.id === dropdownId && (
-                                    <div className="absolute top-[110%] left-0 w-52 bg-[#16161A] border border-white/10 rounded-2xl shadow-2xl z-[120] overflow-hidden animate-in fade-in zoom-in-95 backdrop-blur-xl">
-                                      <div className="max-h-56 overflow-y-auto custom-scrollbar p-1.5">
-                                        <button 
-                                          onClick={() => { 
-                                            setPendingChanges({ ...pendingChanges, links: { ...pendingChanges.links, [svc]: null } });
-                                            setActiveDropdown(null); 
-                                          }}
-                                          className="w-full text-left px-3 py-2.5 text-[10px] text-rose-400/60 font-bold uppercase hover:bg-rose-500/10 rounded-xl transition-all"
-                                        >
-                                          Unlink Profile (Staged)
-                                        </button>
-                                        <div className="h-px bg-white/5 my-1.5" />
-                                        {profiles.length === 0 && (
-                                          <div className="px-3 py-4 text-[10px] text-white/20 text-center italic">No profiles found</div>
-                                        )}
-                                        {profiles.map(p => (
-                                          <button 
-                                            key={p.id}
-                                            onClick={() => { 
-                                              setPendingChanges({ ...pendingChanges, links: { ...pendingChanges.links, [svc]: p } });
-                                              setActiveDropdown(null); 
-                                            }}
-                                            className="w-full text-left px-3 py-2.5 rounded-xl hover:bg-violet-500/20 group/p transition-all"
-                                          >
-                                            <div className="flex items-center justify-between">
-                                              <div className="flex flex-col min-w-0">
-                                                <span className="text-[11px] text-white/80 group-hover/p:text-white font-bold truncate">{p.username}</span>
-                                                <span className="text-[8px] text-white/20 font-black uppercase tracking-tighter truncate">{p.external_user_id}</span>
+                                    <div className="absolute top-[110%] left-0 w-64 bg-[#16161A] border border-white/10 rounded-2xl shadow-[0_30px_60px_-15px_rgba(0,0,0,0.8)] z-[200] overflow-hidden animate-in fade-in zoom-in-95 backdrop-blur-2xl ring-1 ring-white/5">
+                                      <div className="p-3 border-b border-white/5 bg-white/[0.02] flex items-center justify-between">
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-white/20">Link {svc}</span>
+                                        <div className="px-2 py-0.5 rounded-full bg-violet-500/10 text-violet-400 text-[8px] font-bold uppercase tracking-tighter border border-violet-500/20">
+                                          {profiles.length} Found
+                                        </div>
+                                      </div>
+                                      <div className="max-h-[280px] overflow-y-auto custom-scrollbar p-1">
+                                        {profiles.length === 0 ? (
+                                          <div className="p-8 text-center">
+                                            <p className="text-[10px] text-white/20 font-black uppercase tracking-widest">No profiles found</p>
+                                          </div>
+                                        ) : (
+                                          profiles.map((profile: any) => (
+                                            <button
+                                              key={profile.id}
+                                              onClick={() => {
+                                                setPendingChanges({
+                                                  ...pendingChanges,
+                                                  links: {
+                                                    ...pendingChanges.links,
+                                                    [svc]: profile
+                                                  }
+                                                });
+                                                setActiveDropdown(null);
+                                              }}
+                                              className={cn(
+                                                "w-full text-left px-4 py-3 rounded-xl text-xs transition-all flex items-center justify-between group/item",
+                                                pendingChanges?.links?.[svc]?.username === profile.username 
+                                                  ? "bg-violet-600 text-white font-bold" 
+                                                  : "text-white/60 hover:bg-white/5 hover:text-white"
+                                              )}
+                                            >
+                                              <div className="flex items-center gap-3">
+                                                <div className="w-7 h-7 rounded-lg bg-black/40 border border-white/10 flex items-center justify-center overflow-hidden">
+                                                  {(profile.avatar_url || profile.metadata?.avatar_url) ? (
+                                                    <img src={profile.avatar_url || profile.metadata.avatar_url} alt="" className="w-full h-full object-cover" />
+                                                  ) : (
+                                                    <Users className="w-3.5 h-3.5 opacity-20" />
+                                                  )}
+                                                </div>
+                                                <div className="flex flex-col">
+                                                  <span className="font-bold">{profile.username}</span>
+                                                  <span className="text-[8px] opacity-40 uppercase tracking-tighter">ID: {profile.external_id?.slice(0, 8)}...</span>
+                                                </div>
                                               </div>
-                                              {pendingChanges?.links?.[svc]?.id === p.id && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />}
-                                            </div>
-                                          </button>
-                                        ))}
+                                              {pendingChanges?.links?.[svc]?.username === profile.username && <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />}
+                                            </button>
+                                          ))
+                                        )}
                                       </div>
                                     </div>
                                   )}
-                                </div>
+                                </>
                               ) : (
-                                <div className="flex items-center gap-3">
+                                <div className="flex items-center">
                                   {linkedProfile ? (
-                                    <div className="flex items-center gap-2.5 text-emerald-400 bg-emerald-500/5 px-2.5 py-1.5 rounded-xl border border-emerald-500/20 shadow-[0_0_15px_-5px_rgba(16,185,129,0.2)] group/status">
-                                      <div className="relative flex items-center justify-center">
-                                        <div className="absolute w-2.5 h-2.5 rounded-full bg-emerald-500/40 animate-ping" />
-                                        <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.8)] border border-white/20" />
-                                      </div>
-                                      <span className="text-[10px] font-black uppercase tracking-widest truncate max-w-[80px]">{linkedProfile.username}</span>
+                                    <div className="px-4 py-2.5 rounded-2xl bg-white text-black text-[10px] font-black uppercase tracking-widest flex items-center gap-3 border border-white shadow-[0_15px_30px_-5px_rgba(255,255,255,0.4)] transition-all hover:scale-110 hover:shadow-[0_20px_40px_-5px_rgba(255,255,255,0.6)]">
+                                      <div className="w-2 h-2 rounded-full bg-violet-600 shadow-[0_0_10px_rgba(139,92,246,1)] animate-pulse" />
+                                      <span className="truncate max-w-[80px]">{linkedProfile.username}</span>
                                     </div>
                                   ) : (
-                                    <div className="flex items-center gap-2.5 text-rose-500/40 bg-rose-500/5 px-2.5 py-1.5 rounded-xl border border-rose-500/10 opacity-50 hover:opacity-100 transition-opacity">
-                                      <div className="w-2 h-2 rounded-full bg-rose-500/20 shadow-[0_0_8px_rgba(244,63,94,0.3)] border border-rose-500/20" />
-                                      <span className="text-[10px] font-black uppercase tracking-widest italic opacity-40">None</span>
+                                    <div className="px-4 py-2.5 rounded-2xl bg-white/[0.05] text-white/20 border border-white/5 text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
+                                      <div className="w-2 h-2 rounded-full bg-white/10" />
+                                      NONE
                                     </div>
                                   )}
                                 </div>
@@ -687,29 +696,24 @@ export default function MembersModal({ isOpen, onClose, integration }: MembersMo
                             </div>
                           );
                         })}
+
                         <div className="flex items-center justify-end gap-3 pr-2">
                           <button 
-                            onClick={() => {
-                              if (isEditing) {
-                                setShowSaveConfirm(member.id);
-                              } else {
-                                handleStartEdit(member);
-                              }
-                            }}
+                            onClick={() => isEditing ? setShowSaveConfirm(member.id) : handleStartEdit(member)}
                             className={cn(
-                              "w-10 h-10 rounded-2xl flex items-center justify-center transition-all border group shadow-lg",
+                              "w-12 h-12 rounded-2xl flex items-center justify-center transition-all shadow-xl group",
                               isEditing 
-                                ? "bg-emerald-500 text-white border-emerald-400 shadow-emerald-500/20" 
-                                : "bg-white/5 text-white/40 border-white/10 hover:text-violet-400 hover:border-violet-500/30 hover:bg-violet-500/10 hover:shadow-violet-500/5"
+                                ? "bg-emerald-500 text-white hover:bg-emerald-600 shadow-emerald-500/40 border border-emerald-400" 
+                                : "bg-white/[0.05] text-white/40 hover:bg-violet-600 hover:text-white hover:shadow-violet-600/40 border border-white/10 hover:border-violet-400"
                             )}
                           >
-                            {isEditing ? <Save className="w-5 h-5 animate-in zoom-in" /> : <Settings2 className="w-5 h-5 group-hover:rotate-45 transition-transform" />}
+                            {isEditing ? <Save className="w-6 h-6" /> : <Settings2 className="w-6 h-6 group-hover:rotate-90 transition-transform duration-500" />}
                           </button>
                           <button 
                             onClick={() => setConfirmDelete(member.id)}
-                            className="w-10 h-10 flex items-center justify-center bg-rose-500/5 text-rose-500/30 hover:bg-rose-500/10 hover:text-rose-500 border border-transparent hover:border-rose-500/20 rounded-2xl transition-all shadow-lg hover:shadow-rose-500/5"
+                            className="w-12 h-12 flex items-center justify-center bg-white/[0.05] text-white/40 hover:bg-rose-600 hover:text-white hover:shadow-rose-600/40 border border-white/10 hover:border-rose-400 rounded-2xl transition-all shadow-xl group"
                           >
-                            <Trash2 className="w-5 h-5" />
+                            <Trash2 className="w-6 h-6 group-hover:scale-110 transition-transform" />
                           </button>
                         </div>
                       </div>
