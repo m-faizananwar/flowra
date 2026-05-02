@@ -2,7 +2,7 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
-import { 
+import {
     PieChart,
     WalletCards,
     History,
@@ -29,7 +29,8 @@ import {
     Radio,
     Target,
     AreaChart,
-    LogOut
+    LogOut,
+    AlertTriangle
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -62,6 +63,7 @@ const MENU_SECTIONS = [
         title: "Intelligence & Data",
         items: [
             { icon: Target, label: "Performance", href: "/performance" },
+            { icon: AlertTriangle, label: "Risk Assessment", href: "/triage" },
             { icon: AreaChart, label: "Sprint Analytics", href: "/sprints" },
         ]
     },
@@ -267,23 +269,6 @@ export function Sidebar({
 
                     {/* Footer Section */}
                     <div className={cn("p-5 pb-7 mt-auto", isCollapsed && "p-4 flex flex-col items-center")}>
-                        {/* Special Triage Trigger */}
-                        <button 
-                            className={cn(
-                                "w-full flex items-center gap-3.5 px-3.5 py-4 rounded-2xl bg-[#24FF7C]/5 border border-[#24FF7C]/10 mb-4 group transition-all hover:bg-[#24FF7C]/10 active:scale-[0.98]",
-                                isCollapsed && "justify-center px-0 mb-4"
-                            )}
-                        >
-                            <div className="w-8 h-8 rounded-xl bg-[#24FF7C] flex items-center justify-center shadow-[0_0_15px_rgba(36,255,124,0.3)] group-hover:scale-110 transition-transform shrink-0">
-                                <Zap className="w-4 h-4 text-black stroke-[3px]" />
-                            </div>
-                            {!isCollapsed && (
-                                <div className="text-left">
-                                    <p className="text-[13px] font-black text-white leading-none mb-1 group-hover:text-[#24FF7C] transition-colors">TRIAGE HUB</p>
-                                    <p className="text-[9px] font-black text-[#24FF7C]/40 uppercase tracking-widest leading-none">4 pending items</p>
-                                </div>
-                            )}
-                        </button>
 
                         {/* Floating Upgrade Card */}
                         {!isCollapsed && (

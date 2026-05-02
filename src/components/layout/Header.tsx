@@ -1,7 +1,8 @@
 "use client";
 
-import { Bell, User, Wallet, LayoutGrid } from "lucide-react";
+import { User, Wallet, LayoutGrid } from "lucide-react";
 import { usePathname } from "next/navigation";
+import { NotificationsPanel } from "./NotificationsPanel";
 
 interface HeaderProps {
     userEmail?: string;
@@ -42,10 +43,7 @@ export function Header({ userEmail = "User" }: HeaderProps) {
                         <LayoutGrid className="w-6 h-6 stroke-[1.5px]" />
                     </button>
 
-                    <button className="relative p-2 text-white/40 hover:text-white transition-colors group">
-                        <Bell className="w-6 h-6 stroke-[1.5px]" />
-                        <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-[#FF8A8A] rounded-full border-2 border-[#0A0B0D]" />
-                    </button>
+                    <NotificationsPanel />
                     
                     <button className="p-2 text-white/40 hover:text-white transition-colors">
                         <Wallet className="w-6 h-6 stroke-[1.5px]" />

@@ -214,7 +214,16 @@ export function IntegrationsContent() {
                                         "w-14 h-14 rounded-2xl flex items-center justify-center transition-colors border",
                                         isConnected ? "bg-black/[0.03] border-black/5" : "bg-white/[0.04] backdrop-blur-xl border-white/5 group-hover:bg-black/[0.03] group-hover:border-black/5"
                                     )}>
-                                        <img src={app.icon} alt={app.name} className={cn("w-7 h-7 transition-opacity", isConnected ? "opacity-100" : "opacity-80 group-hover:opacity-100")} />
+                                        <img 
+                                            src={app.icon} 
+                                            alt={app.name} 
+                                            className={cn(
+                                                "w-7 h-7 transition-all duration-500", 
+                                                isConnected ? "opacity-100" : "opacity-80 group-hover:opacity-100",
+                                                // Invert white logos only when the background turns white
+                                                ["github", "vercel", "notion", "linear"].includes(app.id) && (isConnected ? "invert" : "group-hover:invert")
+                                            )} 
+                                        />
                                     </div>
                                     <div className="flex items-center gap-3">
                                         <div className="flex flex-col items-end">
