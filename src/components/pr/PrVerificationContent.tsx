@@ -67,17 +67,10 @@ export function PrVerificationContent() {
                 variants={staggerContainer}
                 initial="hidden"
                 animate="show"
-                className="space-y-8 pb-12"
+                className="space-y-10 pb-12"
             >
-                {/* Header */}
+                {/* Search & Actions Bar */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                    <div>
-                        <h1 className="text-4xl font-black text-white font-[family-name:var(--font-outfit)] tracking-tight italic">
-                            NEURAL AUDIT
-                        </h1>
-                        <p className="text-[11px] font-black text-white/30 uppercase tracking-[0.3em] mt-1">Cross-platform pull request verification</p>
-                    </div>
-
                     <div className="flex items-center gap-3">
                         <div className="relative group">
                             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-focus-within:text-blue-400 transition-colors" />
@@ -86,44 +79,78 @@ export function PrVerificationContent() {
                                 placeholder="Search PRs..."
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
-                                className="h-12 w-64 bg-white/[0.03] border border-white/10 rounded-2xl pl-11 pr-4 text-sm text-white focus:outline-none focus:border-blue-400/50 transition-all font-bold"
+                                className="h-12 w-full md:w-80 bg-white/[0.03] border border-white/10 rounded-2xl pl-11 pr-4 text-sm text-white focus:outline-none focus:border-blue-400/50 transition-all font-bold"
                             />
                         </div>
                         <button className="flex items-center gap-2 px-5 h-12 rounded-2xl bg-white/[0.03] border border-white/10 text-white/60 hover:text-white hover:bg-white/[0.06] transition-all">
                             <Filter className="w-4 h-4" />
+                            <span className="text-[10px] font-black uppercase tracking-widest hidden sm:inline">Filter</span>
                         </button>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                         <div className="flex gap-1.5 items-center bg-[#24FF7C]/5 px-4 py-2 rounded-xl border border-[#24FF7C]/10">
+                             <div className="w-1.5 h-1.5 rounded-full bg-[#24FF7C] animate-pulse" />
+                             <span className="text-[9px] font-black text-[#24FF7C]/60 uppercase tracking-widest">Neural Link Active</span>
+                         </div>
                     </div>
                 </div>
 
                 {/* Verification Stats */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                    <motion.div variants={staggerItem} className="p-6 rounded-[2rem] bg-indigo-500/5 border border-indigo-500/10 flex flex-col gap-2">
-                        <p className="text-[9px] font-black text-indigo-400 uppercase tracking-widest">Total Monitored</p>
-                        <p className="text-2xl font-black text-white italic">148 PRs</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <motion.div variants={staggerItem} className="p-7 rounded-[2.5rem] bg-indigo-500/5 border border-white/5 flex flex-col gap-3 group hover:bg-indigo-500/10 transition-all">
+                        <div className="flex items-center justify-between">
+                            <p className="text-[9px] font-black text-indigo-400 uppercase tracking-widest">Total Monitored</p>
+                            <GitPullRequest className="w-4 h-4 text-indigo-400/40" />
+                        </div>
+                        <p className="text-3xl font-black text-white italic tracking-tight">148 PRs</p>
                         <div className="flex items-center gap-2 mt-2">
-                            <div className="flex-1 h-1 bg-white/5 rounded-full overflow-hidden">
-                                <div className="w-3/4 h-full bg-indigo-500" />
+                            <div className="flex-1 h-1.5 bg-white/5 rounded-full overflow-hidden">
+                                <div className="w-3/4 h-full bg-indigo-500 shadow-[0_0_10px_rgba(99,102,241,0.5)]" />
                             </div>
-                            <span className="text-[9px] font-black text-white/20">75%</span>
+                            <span className="text-[10px] font-black text-white/20">75%</span>
                         </div>
                     </motion.div>
                     
-                    <motion.div variants={staggerItem} className="p-6 rounded-[2rem] bg-[#24FF7C]/5 border border-[#24FF7C]/10 flex flex-col gap-2">
-                        <p className="text-[9px] font-black text-[#24FF7C] uppercase tracking-widest">Verification Rate</p>
-                        <p className="text-2xl font-black text-white italic">92.4%</p>
-                        <Activity className="w-4 h-4 text-[#24FF7C] mt-2" />
+                    <motion.div variants={staggerItem} className="p-7 rounded-[2.5rem] bg-[#24FF7C]/5 border border-white/5 flex flex-col gap-3 group hover:bg-[#24FF7C]/10 transition-all">
+                        <div className="flex items-center justify-between">
+                            <p className="text-[9px] font-black text-[#24FF7C] uppercase tracking-widest">Verification Rate</p>
+                            <Activity className="w-4 h-4 text-[#24FF7C]/40" />
+                        </div>
+                        <div className="flex items-baseline gap-2">
+                            <p className="text-3xl font-black text-white italic tracking-tight">92.4%</p>
+                            <span className="text-[10px] font-black text-[#24FF7C]">Optimal</span>
+                        </div>
+                        <div className="w-full h-8 flex items-end gap-1 mt-1 opacity-20">
+                            {[40, 70, 45, 90, 65, 80, 50].map((h, i) => (
+                                <div key={i} className="flex-1 bg-[#24FF7C] rounded-t-sm" style={{ height: `${h}%` }} />
+                            ))}
+                        </div>
                     </motion.div>
 
-                    <motion.div variants={staggerItem} className="p-6 rounded-[2rem] bg-red-500/5 border border-red-500/10 flex flex-col gap-2">
-                        <p className="text-[9px] font-black text-red-400 uppercase tracking-widest">Drift Anomalies</p>
-                        <p className="text-2xl font-black text-white italic">3 Alerts</p>
-                        <ShieldAlert className="w-4 h-4 text-red-500 mt-2" />
+                    <motion.div variants={staggerItem} className="p-7 rounded-[2.5rem] bg-red-500/5 border border-white/5 flex flex-col gap-3 group hover:bg-red-500/10 transition-all">
+                        <div className="flex items-center justify-between">
+                            <p className="text-[9px] font-black text-red-400 uppercase tracking-widest">Drift Anomalies</p>
+                            <ShieldAlert className="w-4 h-4 text-red-500/40" />
+                        </div>
+                        <p className="text-3xl font-black text-white italic tracking-tight">3 Alerts</p>
+                        <div className="flex gap-1.5 mt-2">
+                            {[1, 2, 3].map(i => (
+                                <div key={i} className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                            ))}
+                        </div>
                     </motion.div>
 
-                    <motion.div variants={staggerItem} className="p-6 rounded-[2rem] bg-blue-500/5 border border-blue-500/10 flex flex-col gap-2">
-                        <p className="text-[9px] font-black text-blue-400 uppercase tracking-widest">System Health</p>
-                        <p className="text-2xl font-black text-white italic">Optimal</p>
-                        <CheckCircle2 className="w-4 h-4 text-blue-400 mt-2" />
+                    <motion.div variants={staggerItem} className="p-7 rounded-[2.5rem] bg-blue-500/5 border border-white/5 flex flex-col gap-3 group hover:bg-blue-500/10 transition-all">
+                        <div className="flex items-center justify-between">
+                            <p className="text-[9px] font-black text-blue-400 uppercase tracking-widest">System Health</p>
+                            <CheckCircle2 className="w-4 h-4 text-blue-400/40" />
+                        </div>
+                        <p className="text-3xl font-black text-white italic tracking-tight uppercase">Optimal</p>
+                        <div className="flex items-center gap-2 mt-2">
+                            <div className="w-2 h-2 rounded-full bg-blue-400 shadow-[0_0_8px_rgba(96,165,250,0.5)]" />
+                            <span className="text-[10px] font-black text-blue-400/40 uppercase tracking-widest">Core Synchronized</span>
+                        </div>
                     </motion.div>
                 </div>
 
