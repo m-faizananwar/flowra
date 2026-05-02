@@ -53,6 +53,12 @@ export default function MembersModal({ isOpen, onClose, integration }: MembersMo
   const [saving, setSaving] = useState<string | null>(null);
   const [pendingChanges, setPendingChanges] = useState<any>(null);
   const [showSaveConfirm, setShowSaveConfirm] = useState<string | null>(null);
+  const [showFusionConfirm, setShowFusionConfirm] = useState<{
+    primaryId: string;
+    ghostId: string;
+    ghostName: string;
+    service: string;
+  } | null>(null);
 
   useEffect(() => {
     if (isOpen) fetchAllData();
@@ -62,22 +68,45 @@ export default function MembersModal({ isOpen, onClose, integration }: MembersMo
     setEditingId(member.id);
     setPendingChanges({
       full_name: member.full_name,
+      alias: member.alias,
       role: member.role,
       links: { ...member.links }
     });
   };
 
-  const handleApplyPendingChanges = async () => {
+  const handleApplyPendingChanges = async (isFusionConfirmed = false) => {
     if (!editingId || !pendingChanges) return;
-    setSaving(editingId);
 
+    // 0. Pre-Check for Fusion (Merging two Humans)
+    if (!isFusionConfirmed) {
+      for (const svc of ['discord', 'slack', 'telegram']) {
+        const pendingProfile = pendingChanges.links[svc];
+        const originalProfile = (members.find(m => m.id === editingId))?.links[svc];
+        
+        if (pendingProfile && pendingProfile.member_id && pendingProfile.member_id !== editingId && JSON.stringify(pendingProfile) !== JSON.stringify(originalProfile)) {
+          setShowFusionConfirm({
+            primaryId: editingId,
+            ghostId: pendingProfile.member_id,
+            ghostName: members.find(m => m.id === pendingProfile.member_id)?.full_name || "Another Human",
+            service: svc
+          });
+          setShowSaveConfirm(null);
+          return; // Stop and wait for fusion confirmation
+        }
+      }
+    }
+
+    setSaving(editingId);
     try {
       const original = members.find(m => m.id === editingId);
       if (!original) return;
 
-      // 1. Update Member Table (Alias/Role)
+      const currentSvc = integration.service_name?.toLowerCase();
+
+      // 1. Update Member Table (Primary Overrides)
       const updates: any = {};
       if (pendingChanges.full_name !== original.full_name) updates.full_name = pendingChanges.full_name;
+      if (pendingChanges.alias !== original.alias) updates.alias = pendingChanges.alias;
       if (pendingChanges.role !== original.role) updates.role = pendingChanges.role;
 
       if (Object.keys(updates).length > 0) {
@@ -85,31 +114,53 @@ export default function MembersModal({ isOpen, onClose, integration }: MembersMo
         if (error) throw error;
       }
 
-      // 2. Handle Link Changes
+      // 2. Handle Link Changes and FUSION
       for (const svc of ['discord', 'slack', 'telegram']) {
         const pendingProfile = pendingChanges.links[svc];
         const originalProfile = original.links[svc];
 
         if (JSON.stringify(pendingProfile) !== JSON.stringify(originalProfile)) {
-          // Unlink old
+          // Unlink old if it existed
           if (originalProfile) {
             await supabase.from("integration_members").update({ member_id: null }).eq("id", originalProfile.id);
           }
-          // Link new
+
+          // Link new with FUSION logic
           if (pendingProfile) {
-            await supabase.from("integration_members").update({ member_id: editingId }).eq("id", pendingProfile.id);
+            // If this profile already belongs to another Human, MERGE them
+            if (pendingProfile.member_id && pendingProfile.member_id !== editingId) {
+              console.log(`FUSION: Merging Ghost Member ${pendingProfile.member_id} into Primary ${editingId}`);
+              
+              const { error: mergeError } = await supabase.rpc('merge_members', {
+                target_member_id: editingId,
+                source_member_id: pendingProfile.member_id,
+                // If we are linking from THIS service's modal, let this service's data override the Human
+                new_name: currentSvc === svc ? pendingProfile.username : undefined,
+                new_alias: currentSvc === svc ? pendingProfile.username : undefined
+              });
+
+              if (mergeError) throw mergeError;
+            } else {
+              // Normal Link
+              const { error } = await supabase
+                .from("integration_members")
+                .update({ member_id: editingId })
+                .eq("id", pendingProfile.id);
+              if (error) throw error;
+            }
           }
         }
       }
 
-      toast.success("Identity updated successfully");
+      toast.success(isFusionConfirmed ? "Identity Fusion Successful" : "Identity Updated");
       setEditingId(null);
       setPendingChanges(null);
       setShowSaveConfirm(null);
+      setShowFusionConfirm(null);
       await fetchAllData();
     } catch (err: any) {
       console.error(err);
-      toast.error("Save failed: " + err.message);
+      toast.error("Process failed: " + err.message);
     } finally {
       setSaving(null);
     }
@@ -175,13 +226,7 @@ export default function MembersModal({ isOpen, onClose, integration }: MembersMo
 
   const handleRemoveIdentity = async (id: string) => {
     try {
-      const { error: profileError } = await supabase
-        .from('integration_members')
-        .delete()
-        .eq('member_id', id);
-
-      if (profileError) throw profileError;
-
+      // CASCADE: Deleting the member now automatically wipes all integration_members via DB constraint
       const { error: memberError } = await supabase
         .from('members')
         .delete()
@@ -190,7 +235,7 @@ export default function MembersModal({ isOpen, onClose, integration }: MembersMo
       if (memberError) throw memberError;
 
       setMembers(members.filter(m => m.id !== id));
-      toast.success("Identity and linked profiles wiped successfully");
+      toast.success("Identity and all links wiped successfully");
     } catch (err: any) {
       console.error(err);
       toast.error("Deep Wipe failed: " + err.message);
@@ -203,6 +248,7 @@ export default function MembersModal({ isOpen, onClose, integration }: MembersMo
       .insert([{ 
         user_id: integration.user_id,
         full_name: "New Member",
+        alias: "@new_member",
         role: "New Role"
       }])
       .select()
@@ -244,6 +290,70 @@ export default function MembersModal({ isOpen, onClose, integration }: MembersMo
       
       <div className="relative w-full max-w-6xl bg-[#0F0F12] border border-white/10 rounded-3xl overflow-hidden shadow-[0_0_80px_-20px_rgba(0,0,0,0.8)] flex flex-col h-[85vh] animate-in zoom-in-95 duration-300">
         
+        {showFusionConfirm && (
+          <div className="absolute inset-0 z-[210] bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-300">
+            <div className="bg-[#16161A] border border-violet-500/50 p-10 rounded-[2.5rem] max-w-md w-full shadow-[0_0_100px_-20px_rgba(139,92,246,0.3)] animate-in zoom-in-95 duration-300 text-center relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-violet-500 to-transparent" />
+              
+              <div className="w-20 h-20 rounded-3xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center mx-auto mb-8 relative">
+                <Cpu className="w-10 h-10 text-violet-400 animate-pulse" />
+                <div className="absolute inset-0 bg-violet-500/20 blur-2xl rounded-full" />
+              </div>
+
+              <h4 className="text-2xl font-black text-white mb-4 uppercase tracking-tight">Identity Fusion</h4>
+              
+              <div className="space-y-4 mb-10 text-left">
+                <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/5 flex items-center justify-between">
+                  <div>
+                    <p className="text-[10px] font-black text-white/20 uppercase tracking-widest mb-1">Primary Record</p>
+                    <p className="text-sm font-bold text-emerald-400">{pendingChanges.full_name}</p>
+                  </div>
+                  <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+                </div>
+
+                <div className="flex justify-center -my-2 relative z-10">
+                  <div className="bg-[#16161A] p-1 rounded-full border border-white/10">
+                    <ChevronDown className="w-4 h-4 text-white/20" />
+                  </div>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-rose-500/5 border border-rose-500/20 flex items-center justify-between">
+                  <div>
+                    <p className="text-[10px] font-black text-rose-500/40 uppercase tracking-widest mb-1">Ghost Record (To be Deleted)</p>
+                    <p className="text-sm font-bold text-rose-500/60 line-through decoration-rose-500/40">{showFusionConfirm.ghostName}</p>
+                  </div>
+                  <XCircle className="w-5 h-5 text-rose-500/40" />
+                </div>
+
+                <div className="p-4 rounded-2xl bg-violet-500/5 border border-violet-500/20">
+                  <p className="text-[10px] font-black text-violet-400 uppercase tracking-widest mb-2 flex items-center gap-2">
+                    <AlertCircle className="w-3 h-3" />
+                    Data Override Protocol
+                  </p>
+                  <p className="text-[11px] text-white/40 leading-relaxed font-medium">
+                    Since you are linking via <span className="text-violet-400 font-bold uppercase">{showFusionConfirm.service}</span>, that platform's alias and identity data will become the <b>new primary</b> for this Human.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-4">
+                <button 
+                  onClick={() => setShowFusionConfirm(null)}
+                  className="flex-1 px-6 py-4 bg-white/5 hover:bg-white/10 rounded-2xl text-[11px] font-black text-white uppercase tracking-widest transition-all border border-white/5"
+                >
+                  Abort
+                </button>
+                <button 
+                  onClick={() => handleApplyPendingChanges(true)}
+                  className="flex-[1.5] px-6 py-4 bg-violet-500 hover:bg-violet-600 rounded-2xl text-[11px] font-black text-white uppercase tracking-widest transition-all shadow-[0_20px_40px_-10px_rgba(139,92,246,0.5)] border border-violet-400/50"
+                >
+                  Confirm Fusion
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {showSaveConfirm && (
           <div className="absolute inset-0 z-[200] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
             <div className="bg-[#16161A] border border-emerald-500/30 p-8 rounded-3xl max-w-sm w-full shadow-2xl shadow-emerald-500/10 animate-in zoom-in-95 duration-200 text-center">
@@ -397,29 +507,40 @@ export default function MembersModal({ isOpen, onClose, integration }: MembersMo
                         <div className="relative">
                           {isEditing ? (
                             <div className="flex flex-col gap-1.5 animate-in slide-in-from-left-2 duration-300">
-                              <label className="text-[8px] text-violet-400 font-black uppercase tracking-widest pl-1">Name / Alias</label>
+                              <label className="text-[8px] text-violet-400 font-black uppercase tracking-widest pl-1">Full Name</label>
                               <input 
                                 type="text"
                                 autoFocus
                                 value={pendingChanges?.full_name || ""}
                                 onChange={(e) => setPendingChanges({ ...pendingChanges, full_name: e.target.value })}
-                                className="w-full bg-black/40 border border-violet-500/30 rounded-xl py-2.5 px-4 text-xs text-white focus:outline-none focus:border-violet-500/60 transition-all placeholder:text-white/10"
+                                className="w-full bg-black/40 border border-violet-500/30 rounded-xl py-2 px-4 text-xs text-white focus:outline-none focus:border-violet-500/60 transition-all placeholder:text-white/10"
                                 placeholder="Enter name..."
+                              />
+                              <label className="text-[8px] text-violet-400 font-black uppercase tracking-widest pl-1 mt-1">Alias</label>
+                              <input 
+                                type="text"
+                                value={pendingChanges?.alias || ""}
+                                onChange={(e) => setPendingChanges({ ...pendingChanges, alias: e.target.value })}
+                                className="w-full bg-black/40 border border-violet-500/30 rounded-xl py-2 px-4 text-[10px] text-violet-300/80 focus:outline-none focus:border-violet-500/60 transition-all placeholder:text-white/10 font-bold"
+                                placeholder="@alias..."
                               />
                             </div>
                           ) : (
                             <div className="text-sm font-bold text-white/90 truncate flex items-center gap-4">
-                              <div className="relative w-9 h-9 rounded-xl overflow-hidden border border-white/10 bg-black/40 flex-shrink-0 shadow-lg">
+                              <div className="relative w-10 h-10 rounded-xl overflow-hidden border border-white/10 bg-black/40 flex-shrink-0 shadow-lg">
                                 {member.avatar_url ? (
                                   <img src={member.avatar_url} alt="" className="w-full h-full object-cover" />
                                 ) : (
                                   <div className="w-full h-full flex items-center justify-center bg-violet-500/10">
-                                    <Users className="w-4 h-4 text-violet-400/40" />
+                                    <Users className="w-5 h-5 text-violet-400/40" />
                                   </div>
                                 )}
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
                               </div>
-                              <span className="truncate">{member.full_name || "Unnamed Entity"}</span>
+                              <div className="flex flex-col min-w-0">
+                                <span className="truncate leading-tight">{member.full_name || "Unnamed Entity"}</span>
+                                <span className="text-[10px] text-white/30 font-black uppercase tracking-widest mt-0.5 truncate">{member.alias || "@unknown"}</span>
+                              </div>
                             </div>
                           )}
                         </div>
