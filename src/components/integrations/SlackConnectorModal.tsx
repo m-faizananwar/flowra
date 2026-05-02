@@ -166,7 +166,7 @@ export function SlackConnectorModal({ isOpen, onClose, onSuccess, initialData }:
                         external_id: c.id,
                         name: c.name === "Pending sync..." || c.name === "Recovered Channel" ? null : c.name
                     })),
-                    { onConflict: 'integration_id, external_id' }
+                    { onConflict: 'integration_id,external_id' }
                 );
 
             if (channelError) throw channelError;

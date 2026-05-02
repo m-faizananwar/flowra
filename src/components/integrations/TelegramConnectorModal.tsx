@@ -57,6 +57,11 @@ export function TelegramConnectorModal({ isOpen, onClose, onSuccess, initialData
                 return;
             }
 
+            console.log("Establishing Telegram Tunnel...", {
+                user_id: user.id,
+                chat_id: chatId
+            });
+
             const { error } = await supabase
                 .from('integrations')
                 .upsert({
@@ -66,10 +71,14 @@ export function TelegramConnectorModal({ isOpen, onClose, onSuccess, initialData
                         chat_id: chatId
                     },
                     is_active: true
-                }, { onConflict: 'user_id, service_name' });
+                }, { onConflict: 'user_id,service_name' });
 
-            if (error) throw error;
+            if (error) {
+                console.error("TELEGRAM TUNNEL ERROR:", error);
+                throw error;
+            }
 
+            console.log("Telegram Tunnel established successfully!");
             toast.success("Telegram updated successfully!");
             onSuccess();
             setStep(3);
