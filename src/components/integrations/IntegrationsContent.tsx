@@ -8,7 +8,10 @@ import {
     CheckCircle2,
     Zap,
     Search,
-    Loader2
+    Loader2,
+    MoreVertical,
+    Users,
+    Trash2
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
@@ -18,6 +21,8 @@ import { PageTransition, staggerContainer, staggerItem } from "@/components/anim
 import { DiscordConnectorModal } from "./DiscordConnectorModal";
 import { TelegramConnectorModal } from "./TelegramConnectorModal";
 import { SlackConnectorModal } from "./SlackConnectorModal";
+import MembersModal from "./MembersModal";
+import DeleteConfirmationModal from "./DeleteConfirmationModal";
 
 const MOCK_INTEGRATIONS = [
     { id: "gh", name: "GitHub", category: "Version Control", icon: "https://cdn.simpleicons.org/github/white", status: "connected", lastSync: "2m ago", color: "text-white" },
@@ -34,6 +39,10 @@ export function IntegrationsContent() {
     const [isLoading, setIsLoading] = useState(true);
     const [activeModal, setActiveModal] = useState<string | null>(null);
     const [userIntegrations, setUserIntegrations] = useState<any[]>([]);
+    const [viewingMembers, setViewingMembers] = useState<any | null>(null);
+    const [deletingIntegration, setDeletingIntegration] = useState<any | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
+    const [activeMenu, setActiveMenu] = useState<string | null>(null);
 
     const fetchIntegrations = async () => {
         try {
@@ -45,6 +54,27 @@ export function IntegrationsContent() {
             setUserIntegrations(data || []);
         } catch (error) {
             console.error('Fetch error:', error);
+        }
+    };
+
+    const handleDeleteIntegration = async () => {
+        if (!deletingIntegration) return;
+        setIsDeleting(true);
+        try {
+            const { error } = await supabase
+                .from('integrations')
+                .delete()
+                .eq('id', deletingIntegration.id);
+            
+            if (error) throw error;
+            
+            toast.success(`${deletingIntegration.service_name} disconnected successfully.`);
+            await fetchIntegrations();
+            setDeletingIntegration(null);
+        } catch (error: any) {
+            toast.error(`Removal failed: ${error.message}`);
+        } finally {
+            setIsDeleting(false);
         }
     };
 
@@ -73,7 +103,7 @@ export function IntegrationsContent() {
                 animate="show"
                 className="space-y-8 pb-12"
             >
-                {/* Header and Other Content... (Keep as is) */}
+                {/* Header */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                     <div>
                         <h1 className="text-4xl font-black text-white font-[family-name:var(--font-outfit)] tracking-tight">
@@ -94,12 +124,11 @@ export function IntegrationsContent() {
                     </div>
                 </div>
 
-                {/* Hero Feature Card - REDESIGNED for Premium Feel */}
+                {/* Hero Feature Card */}
                 <motion.div 
                     variants={staggerItem}
                     className="relative p-12 rounded-[3.5rem] bg-gradient-to-br from-[#121316] to-[#0A0A0B] border border-white/5 overflow-hidden group shadow-[0_40px_80px_-15px_rgba(0,0,0,0.7)]"
                 >
-                    {/* Ambient Glows */}
                     <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-violet-600/10 blur-[150px] -translate-y-1/2 translate-x-1/4 pointer-events-none" />
                     <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-emerald-500/5 blur-[120px] translate-y-1/2 -translate-x-1/4 pointer-events-none" />
                     
@@ -130,13 +159,13 @@ export function IntegrationsContent() {
                             <div className="p-10 rounded-[2.5rem] bg-white/[0.02] border border-white/[0.05] backdrop-blur-2xl group-hover:bg-white/[0.04] transition-all duration-700">
                                 <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] mb-6 text-center">Active Nodes</p>
                                 <div className="text-center mb-6">
-                                    <span className="text-6xl font-black text-white tracking-tighter" style={{ fontFamily: 'var(--font-outfit), sans-serif' }}>12</span>
+                                    <span className="text-6xl font-black text-white tracking-tighter" style={{ fontFamily: 'var(--font-outfit), sans-serif' }}>{userIntegrations.length}</span>
                                     <span className="text-xl font-black text-white/20 tracking-tighter">/32</span>
                                 </div>
                                 <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
                                     <motion.div 
                                         initial={{ width: 0 }}
-                                        animate={{ width: '37%' }}
+                                        animate={{ width: `${(userIntegrations.length / 32) * 100}%` }}
                                         transition={{ duration: 1.5, ease: "circOut" }}
                                         className="h-full bg-gradient-to-r from-violet-600 to-indigo-500"
                                     />
@@ -171,16 +200,11 @@ export function IntegrationsContent() {
                                 variants={staggerItem}
                                 whileHover={{ y: -8, scale: 1.01 }}
                                 className={cn(
-                                    "p-8 rounded-[2.5rem] backdrop-blur-2xl border transition-all duration-500 cursor-pointer group relative overflow-hidden",
+                                    "p-8 rounded-[2.5rem] backdrop-blur-2xl border transition-all duration-500 group relative overflow-hidden",
                                     isConnected 
                                         ? "bg-white border-white/20 shadow-[0_20px_50px_-10px_rgba(255,255,255,0.1)]" 
                                         : "bg-white/[0.03] border-white/5 hover:border-white/10 hover:bg-white"
                                 )}
-                                onClick={() => {
-                                    if (app.id === "discord") setActiveModal("discord");
-                                    if (app.id === "telegram") setActiveModal("telegram");
-                                    if (app.id === "slack") setActiveModal("slack");
-                                }}
                             >
                                 <div className="absolute top-0 right-0 w-32 h-32 bg-black/5 blur-[50px] rounded-full pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity" />
                                 
@@ -191,25 +215,71 @@ export function IntegrationsContent() {
                                     )}>
                                         <img src={app.icon} alt={app.name} className={cn("w-7 h-7 transition-opacity", isConnected ? "opacity-100" : "opacity-80 group-hover:opacity-100")} />
                                     </div>
-                                    <div className="flex flex-col items-end">
-                                         <div className={cn(
-                                              "px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest border backdrop-blur-md transition-colors",
-                                              isConnected 
-                                                ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" 
-                                                : "bg-white/5 text-white/20 border-white/10 group-hover:bg-black/5 group-hover:text-black/40 group-hover:border-black/5"
-                                         )}>
-                                              {isConnected ? (integrations.length > 1 ? `${integrations.length} Accounts` : "Connected") : "Not Linked"}
-                                         </div>
-                                         <p className={cn(
-                                            "text-[8px] font-black uppercase tracking-widest mt-2 transition-colors",
-                                            isConnected ? "text-black/20" : "text-white/10 group-hover:text-black/20"
-                                         )}>
-                                            {isConnected ? (firstIntegration.last_sync_at ? new Date(firstIntegration.last_sync_at).toLocaleDateString() : "Active") : "N/A"}
-                                         </p>
+                                    <div className="flex items-center gap-3">
+                                        <div className="flex flex-col items-end">
+                                             <div className={cn(
+                                                  "px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest border backdrop-blur-md transition-colors",
+                                                  isConnected 
+                                                    ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" 
+                                                    : "bg-white/5 text-white/20 border-white/10 group-hover:bg-black/5 group-hover:text-black/40 group-hover:border-black/5"
+                                             )}>
+                                                  {isConnected ? (integrations.length > 1 ? `${integrations.length} Accounts` : "Connected") : "Not Linked"}
+                                             </div>
+                                             <p className={cn(
+                                                "text-[8px] font-black uppercase tracking-widest mt-2 transition-colors",
+                                                isConnected ? "text-black/20" : "text-white/10 group-hover:text-black/20"
+                                             )}>
+                                                {isConnected ? (firstIntegration.last_sync_at ? new Date(firstIntegration.last_sync_at).toLocaleDateString() : "Active") : "N/A"}
+                                             </p>
+                                        </div>
+
+                                        {isConnected && (
+                                            <div className="relative">
+                                                <button 
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setActiveMenu(activeMenu === app.id ? null : app.id);
+                                                    }}
+                                                    className="w-10 h-10 rounded-xl bg-black/5 hover:bg-black/10 flex items-center justify-center transition-colors text-black/40 hover:text-black"
+                                                >
+                                                    <MoreVertical className="w-5 h-5" />
+                                                </button>
+
+                                                {activeMenu === app.id && (
+                                                    <div className="absolute right-0 top-12 w-48 bg-white border border-black/5 rounded-2xl shadow-2xl z-50 p-2 animate-in zoom-in-95 duration-200">
+                                                        <button 
+                                                            onClick={() => {
+                                                                setViewingMembers(firstIntegration);
+                                                                setActiveMenu(null);
+                                                            }}
+                                                            className="w-full flex items-center gap-3 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-black/60 hover:text-violet-600 hover:bg-violet-50 rounded-xl transition-all"
+                                                        >
+                                                            <Users className="w-4 h-4" />
+                                                            Manage Members
+                                                        </button>
+                                                        <div className="h-px bg-black/5 my-1" />
+                                                        <button 
+                                                            onClick={() => {
+                                                                setDeletingIntegration(firstIntegration);
+                                                                setActiveMenu(null);
+                                                            }}
+                                                            className="w-full flex items-center gap-3 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-rose-500 hover:bg-rose-50 rounded-xl transition-all"
+                                                        >
+                                                            <Trash2 className="w-4 h-4" />
+                                                            Disconnect
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
 
-                                <div className="mb-8">
+                                <div className="mb-8" onClick={() => {
+                                    if (app.id === "discord") setActiveModal("discord");
+                                    if (app.id === "telegram") setActiveModal("telegram");
+                                    if (app.id === "slack") setActiveModal("slack");
+                                }}>
                                     <h4 className={cn("text-xl font-black transition-colors", isConnected ? "text-black" : "text-white group-hover:text-black")}>{app.name}</h4>
                                     <div className="flex items-center gap-2 mt-1">
                                         <p className={cn("text-[10px] font-black uppercase tracking-[0.2em] transition-colors", isConnected ? "text-black/40" : "text-white/20 group-hover:text-black/40")}>{app.category}</p>
@@ -225,7 +295,14 @@ export function IntegrationsContent() {
                                 </div>
 
                                 <div className={cn("pt-6 border-t flex items-center justify-between transition-colors", isConnected ? "border-black/5" : "border-white/[0.03] group-hover:border-black/5")}>
-                                    <button className={cn("flex items-center gap-2 text-[10px] font-black uppercase tracking-widest transition-colors", isConnected ? "text-black/40 hover:text-black" : "text-white/40 hover:text-white group-hover:text-black/40 group-hover:hover:text-black")}>
+                                    <button 
+                                        onClick={() => {
+                                            if (app.id === "discord") setActiveModal("discord");
+                                            if (app.id === "telegram") setActiveModal("telegram");
+                                            if (app.id === "slack") setActiveModal("slack");
+                                        }}
+                                        className={cn("flex items-center gap-2 text-[10px] font-black uppercase tracking-widest transition-colors", isConnected ? "text-black/40 hover:text-black" : "text-white/40 hover:text-white group-hover:text-black/40 group-hover:hover:text-black")}
+                                    >
                                         <Settings2 className="w-3.5 h-3.5" />
                                         Configure
                                     </button>
@@ -235,7 +312,14 @@ export function IntegrationsContent() {
                                             <span className="text-[9px] font-black uppercase tracking-widest">Multi-Channel Active</span>
                                         </div>
                                     ) : (
-                                        <button className="flex items-center gap-1.5 text-[#8B5CF6] group/btn group-hover:text-black transition-colors">
+                                        <button 
+                                            onClick={() => {
+                                                if (app.id === "discord") setActiveModal("discord");
+                                                if (app.id === "telegram") setActiveModal("telegram");
+                                                if (app.id === "slack") setActiveModal("slack");
+                                            }}
+                                            className="flex items-center gap-1.5 text-[#8B5CF6] group/btn group-hover:text-black transition-colors"
+                                        >
                                             <span className="text-[10px] font-black uppercase tracking-widest">Connect</span>
                                             <ArrowRight className="w-3.5 h-3.5 group-hover/btn:translate-x-1 transition-transform" />
                                         </button>
@@ -274,6 +358,25 @@ export function IntegrationsContent() {
                     fetchIntegrations();
                     toast.success("Slack Enterprise bridge enabled.");
                 }}
+            />
+
+            {/* Managed Members Modal */}
+            {viewingMembers && (
+                <MembersModal 
+                    isOpen={!!viewingMembers}
+                    onClose={() => setViewingMembers(null)}
+                    integration={viewingMembers}
+                />
+            )}
+
+            {/* Delete Confirmation Modal */}
+            <DeleteConfirmationModal 
+                isOpen={!!deletingIntegration}
+                onClose={() => setDeletingIntegration(null)}
+                onConfirm={handleDeleteIntegration}
+                isLoading={isDeleting}
+                title="Remove Integration?"
+                description={`This will permanently disconnect ${deletingIntegration?.service_name} from Flowra. You will lose all synced channel data and member profiles.`}
             />
         </PageTransition>
     );
