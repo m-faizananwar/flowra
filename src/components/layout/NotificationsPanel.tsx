@@ -13,7 +13,7 @@ const TYPE_ICON: Record<string, React.ReactNode> = {
 };
 
 const TYPE_ROUTE: Record<string, string> = {
-    risk_assessment: "/triage",
+    risk_assessment: "/risk",
     member_evaluation: "/performance",
 };
 

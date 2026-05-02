@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
     AlertCircle,
     CheckCircle2,
@@ -13,6 +13,7 @@ import {
     Save,
     Search,
     SlidersHorizontal,
+    Sparkles,
     Trophy,
     UserCircle,
     Users,
@@ -354,9 +355,37 @@ export function PerformanceContent() {
                             <ResponsiveContainer width="100%" height={220}>
                                 <BarChart data={chartData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
                                     <CartesianGrid vertical={false} stroke="rgba(255,255,255,0.03)" strokeDasharray="4 4" />
-                                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 11, fontWeight: 900, letterSpacing: "0.05em" }} dy={10} />
+                                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 11, fontWeight: 900, letterSpacing: "0.05em", fontFamily: "Outfit, sans-serif" }} dy={10} />
                                     <YAxis hide domain={[0, 100]} />
-                                    <Tooltip cursor={{ fill: "rgba(255,255,255,0.03)" }} contentStyle={{ backgroundColor: "#17181C", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "1rem", padding: "0.75rem", color: "#fff", fontSize: "12px" }} formatter={(v: any) => [`${v}/100`, "Score"]} />
+                                    <Tooltip 
+                                        cursor={{ fill: "rgba(255,255,255,0.03)" }} 
+                                        contentStyle={{ 
+                                            backgroundColor: "rgba(23, 24, 28, 0.95)", 
+                                            backdropFilter: "blur(12px)",
+                                            border: "1px solid rgba(255,255,255,0.1)", 
+                                            borderRadius: "1.25rem", 
+                                            padding: "1rem", 
+                                            boxShadow: "0 10px 30px -10px rgba(0,0,0,0.5)"
+                                        }} 
+                                        itemStyle={{
+                                            color: "#24FF7C",
+                                            fontSize: "14px",
+                                            fontWeight: "900",
+                                            fontFamily: "Outfit, sans-serif",
+                                            textTransform: "uppercase",
+                                            letterSpacing: "0.05em"
+                                        }}
+                                        labelStyle={{
+                                            color: "rgba(255,255,255,0.4)",
+                                            fontSize: "10px",
+                                            fontWeight: "900",
+                                            fontFamily: "Outfit, sans-serif",
+                                            textTransform: "uppercase",
+                                            letterSpacing: "0.2em",
+                                            marginBottom: "0.5rem"
+                                        }}
+                                        formatter={(v: any) => [`${v}/100`, "Intelligence Score"]} 
+                                    />
                                     <Bar dataKey="score" radius={[10, 10, 0, 0]} barSize={38} isAnimationActive>
                                         {chartData.map((entry, i) => (
                                             <Cell key={i} fill={entry.score >= 75 ? "#24FF7C" : entry.score >= 50 ? "#F59E0B" : entry.score > 0 ? "#FF8A8A" : "rgba(255,255,255,0.08)"} />
@@ -391,112 +420,169 @@ export function PerformanceContent() {
                                         <p className="text-sm font-black text-white truncate">{member.full_name || member.alias}</p>
                                         <p className="text-[10px] text-white/30 uppercase tracking-widest truncate">{member.role || "No role"}</p>
                                     </div>
-                                    <span className={cn("text-lg font-black flex-shrink-0", color)}>{score !== null ? score.toFixed(0) : "—"}</span>
+                                    <span className={cn("text-lg font-black flex-shrink-0", color)} style={{ fontFamily: "Outfit, sans-serif" }}>{score !== null ? score.toFixed(0) : "—"}</span>
                                 </div>
                             );
                         })}
                     </motion.div>
                 </div>
 
-                {/* ── Row 3: Pending Evaluations ── */}
+                {/* ── Pending Review List ── */}
                 {pendingEvaluations.length > 0 && (
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        <motion.div variants={staggerItem} className="glass-panel rounded-[2.5rem] p-6 space-y-4">
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                    <div className="w-2 h-2 rounded-full bg-[#F59E0B] animate-pulse" />
-                                    <p className="text-[11px] font-black text-white/40 uppercase tracking-widest">Pending Review</p>
+                    <motion.div variants={staggerItem} className="glass-panel rounded-[2.5rem] p-8 space-y-6">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className="w-9 h-9 rounded-xl bg-[#F59E0B]/10 border border-[#F59E0B]/20 flex items-center justify-center">
+                                    <Clock className="w-5 h-5 text-[#F59E0B]" />
                                 </div>
-                                <span className="text-[10px] font-black text-[#F59E0B] bg-[#F59E0B]/10 border border-[#F59E0B]/20 px-2 py-0.5 rounded-full">{pendingEvaluations.length}</span>
+                                <div>
+                                    <h3 className="text-base font-black text-white">Pending Reviews</h3>
+                                    <p className="text-[10px] text-white/30 uppercase tracking-widest">{pendingEvaluations.length} items require your attention</p>
+                                </div>
                             </div>
-                            <div className="space-y-2 max-h-[480px] overflow-y-auto pr-1 custom-scrollbar">
-                                {pendingEvaluations.map((item) => (
-                                    <button key={item.id} onClick={() => setActiveEvaluation(item)} className={cn("w-full text-left p-4 rounded-xl border transition-all", activeEvaluation?.id === item.id ? "bg-[#24FF7C]/[0.08] border-[#24FF7C]/30" : "bg-white/[0.02] border-white/[0.06] hover:border-white/10")}>
-                                        <div className="flex items-center justify-between gap-2 mb-1">
-                                            <p className="text-sm font-black text-white">{item.members?.full_name || item.members?.alias || "Member"}</p>
-                                            <span className="text-xl font-black text-[#24FF7C]">{Number(item.total_score).toFixed(0)}</span>
-                                        </div>
-                                        <p className="text-[10px] text-white/30 uppercase tracking-widest">{item.members?.role || "No role"}</p>
-                                    </button>
-                                ))}
-                            </div>
-                        </motion.div>
+                        </div>
 
-                        <motion.div variants={staggerItem} className="lg:col-span-2 glass-panel rounded-[2.5rem] p-8">
-                            {activeEvaluation ? (
-                                <div className="space-y-6">
-                                    <div className="flex items-start justify-between gap-4">
-                                        <div className="flex items-center gap-4">
-                                            <div className="relative">
-                                                <ScoreRing score={calculateTotal(draftScores, metrics)} size={72} />
-                                                <div className="absolute inset-0 flex items-center justify-center">
-                                                    <span className="text-lg font-black text-white">{Math.round(calculateTotal(draftScores, metrics))}</span>
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <h3 className="text-2xl font-black text-white" style={{ fontFamily: "Outfit, sans-serif" }}>{activeEvaluation.members?.full_name || "Member"}</h3>
-                                                <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mt-0.5">{activeEvaluation.members?.role || "No role"}</p>
-                                            </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                            {pendingEvaluations.map((item) => (
+                                <button 
+                                    key={item.id} 
+                                    onClick={() => setActiveEvaluation(item)} 
+                                    className="group relative p-5 rounded-2xl bg-white/[0.02] border border-white/[0.06] hover:bg-[#24FF7C]/[0.04] hover:border-[#24FF7C]/20 transition-all text-left overflow-hidden"
+                                >
+                                    <div className="absolute top-0 right-0 p-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <Zap className="w-4 h-4 text-[#24FF7C]" />
+                                    </div>
+                                    <div className="flex items-center justify-between gap-3 mb-3">
+                                        <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center overflow-hidden">
+                                            {item.members?.avatar_url ? (
+                                                <img src={item.members.avatar_url} className="w-full h-full object-cover" alt="" />
+                                            ) : (
+                                                <UserCircle className="w-6 h-6 text-white/20" />
+                                            )}
                                         </div>
                                         <div className="text-right">
-                                            <p className="text-[10px] font-black text-white/20 uppercase tracking-widest">Weighted total</p>
-                                            <p className="text-4xl font-black text-[#24FF7C]" style={{ fontFamily: "Outfit, sans-serif" }}>{calculateTotal(draftScores, metrics).toFixed(1)}</p>
+                                            <p className="text-2xl font-black text-[#24FF7C]" style={{ fontFamily: "Outfit, sans-serif" }}>{Number(item.total_score).toFixed(0)}</p>
+                                            <p className="text-[9px] font-black text-white/20 uppercase tracking-widest">Score</p>
                                         </div>
                                     </div>
+                                    <p className="text-sm font-black text-white truncate">{item.members?.full_name || item.members?.alias}</p>
+                                    <p className="text-[10px] text-white/30 uppercase tracking-widest truncate mt-1">{item.members?.role || "No role"}</p>
+                                </button>
+                            ))}
+                        </div>
+                    </motion.div>
+                )}
 
-                                    {activeEvaluation.summary && <p className="text-sm text-white/40 leading-relaxed border-l-2 border-[#24FF7C]/20 pl-4">{activeEvaluation.summary}</p>}
-
-                                    <div className="py-4 bg-white/[0.02] rounded-2xl border border-white/[0.05]">
-                                        <div className="px-4 mb-2 flex items-center justify-between">
-                                            <p className="text-[10px] font-black text-white/25 uppercase tracking-widest">Performance Signature</p>
-                                            <Zap className="w-3 h-3 text-[#24FF7C] opacity-50" />
-                                        </div>
-                                        <EvaluationRadar data={draftScores.map(s => ({ name: s.name, score: s.score }))} />
-                                    </div>
-
-                                    <div className="space-y-3">
-                                        {draftScores.map((score) => (
-                                            <div key={score.metric_id} className="p-4 rounded-xl bg-white/[0.03] border border-white/[0.06]">
-                                                <div className="flex items-center justify-between gap-4 mb-2">
-                                                    <div className="flex-1">
-                                                        <p className="text-sm font-black text-white">{score.name}</p>
-                                                        {score.rationale && <p className="text-xs text-white/30 mt-1 leading-relaxed">{score.rationale}</p>}
-                                                    </div>
-                                                    <input type="number" min={0} max={100} value={Math.round(Number(score.score || 0))} onChange={(e) => updateDraftScore(score.metric_id, Number(e.target.value))} className="w-20 h-10 rounded-xl bg-black/40 border border-white/10 px-3 text-right text-sm font-black text-white focus:outline-none focus:border-[#24FF7C]/50" />
-                                                </div>
-                                                <div className="h-1.5 rounded-full bg-white/5 overflow-hidden">
-                                                    <div className="h-full rounded-full transition-all duration-500" style={{ width: `${score.score || 0}%`, background: score.score >= 75 ? "#24FF7C" : score.score >= 50 ? "#F59E0B" : "#FF8A8A" }} />
-                                                </div>
+                {/* ── Slide-over Right Sidebar for Review ── */}
+                <AnimatePresence>
+                    {activeEvaluation && (
+                        <>
+                            {/* Backdrop */}
+                            <motion.div 
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                onClick={() => setActiveEvaluation(null)}
+                                className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60]"
+                            />
+                            
+                            {/* Panel */}
+                            <motion.div 
+                                initial={{ x: "100%" }}
+                                animate={{ x: 0 }}
+                                exit={{ x: "100%" }}
+                                transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                                className="fixed top-4 right-4 bottom-4 w-full max-w-[500px] bg-[#0F0F12] border border-white/10 rounded-[3rem] shadow-[0_30px_100px_-20px_rgba(0,0,0,0.8)] z-[70] overflow-hidden flex flex-col"
+                            >
+                                <div className="p-8 pb-4 flex items-center justify-between border-b border-white/5">
+                                    <div className="flex items-center gap-4">
+                                        <div className="relative">
+                                            <ScoreRing score={calculateTotal(draftScores, metrics)} size={64} />
+                                            <div className="absolute inset-0 flex items-center justify-center">
+                                                <span className="text-base font-black text-white" style={{ fontFamily: "Outfit, sans-serif" }}>{Math.round(calculateTotal(draftScores, metrics))}</span>
                                             </div>
-                                        ))}
+                                        </div>
+                                        <div>
+                                            <h3 className="text-xl font-black text-white uppercase tracking-tight">{activeEvaluation.members?.full_name || "Member Review"}</h3>
+                                            <p className="text-[10px] font-black text-white/30 uppercase tracking-widest">{activeEvaluation.members?.role || "No role defined"}</p>
+                                        </div>
+                                    </div>
+                                    <button onClick={() => setActiveEvaluation(null)} className="p-2 rounded-xl hover:bg-white/5 text-white/20 hover:text-white transition-all">
+                                        <X className="w-5 h-5" />
+                                    </button>
+                                </div>
+
+                                <div className="flex-1 overflow-y-auto p-8 pt-6 space-y-8 custom-scrollbar">
+                                    <div className="space-y-4">
+                                        <div className="flex items-center gap-2">
+                                            <Sparkles className="w-4 h-4 text-[#24FF7C]" />
+                                            <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">AI Evaluation Summary</p>
+                                        </div>
+                                        {activeEvaluation.summary && (
+                                            <p className="text-sm text-white/70 leading-relaxed bg-white/[0.03] p-5 rounded-2xl border border-white/5 italic">
+                                                "{activeEvaluation.summary}"
+                                            </p>
+                                        )}
                                     </div>
 
-                                    <div className="flex gap-3">
-                                        <button onClick={() => saveEvaluationDraft("pending")} className="h-12 px-5 rounded-xl bg-white/[0.05] border border-white/10 hover:bg-white/[0.08] text-white text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all">
-                                            <Save className="w-4 h-4" /> Save Edits
-                                        </button>
-                                        <button onClick={() => saveEvaluationDraft("approved")} className="h-12 px-6 rounded-xl bg-[#24FF7C] text-black text-[10px] font-black uppercase tracking-widest flex items-center gap-2 shadow-[0_0_20px_rgba(36,255,124,0.3)] hover:shadow-[0_0_30px_rgba(36,255,124,0.5)] transition-all">
-                                            <CheckCircle2 className="w-4 h-4" /> Approve Evaluation
-                                        </button>
+                                    <div className="space-y-4">
+                                        <div className="flex items-center justify-between px-2">
+                                            <p className="text-[10px] font-black text-white/25 uppercase tracking-widest">Performance Signature</p>
+                                            <Zap className="w-3.5 h-3.5 text-[#24FF7C] opacity-50" />
+                                        </div>
+                                        <div className="p-6 bg-white/[0.02] rounded-3xl border border-white/[0.05] shadow-inner">
+                                            <EvaluationRadar data={draftScores.map(s => ({ name: s.name, score: s.score }))} />
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-4">
+                                        <p className="text-[10px] font-black text-white/25 uppercase tracking-widest px-2">Metric Breakdown</p>
+                                        <div className="space-y-3">
+                                            {draftScores.map((score) => (
+                                                <div key={score.metric_id} className="p-5 rounded-2xl bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.05] transition-colors">
+                                                    <div className="flex items-center justify-between gap-4 mb-3">
+                                                        <div className="flex-1">
+                                                            <p className="text-sm font-black text-white">{score.name}</p>
+                                                            {score.rationale && <p className="text-[11px] text-white/30 mt-1 leading-relaxed">{score.rationale}</p>}
+                                                        </div>
+                                                        <div className="flex flex-col items-end gap-1">
+                                                            <input 
+                                                                type="number" 
+                                                                min={0} 
+                                                                max={100} 
+                                                                value={Math.round(Number(score.score || 0))} 
+                                                                onChange={(e) => updateDraftScore(score.metric_id, Number(e.target.value))} 
+                                                                className="w-16 h-9 rounded-lg bg-black/40 border border-white/10 px-2 text-center text-sm font-black text-[#24FF7C] focus:outline-none focus:border-[#24FF7C]/50" 
+                                                                style={{ fontFamily: "Outfit, sans-serif" }}
+                                                            />
+                                                            <span className="text-[8px] font-black text-white/20 uppercase">Score</span>
+                                                        </div>
+                                                    </div>
+                                                    <div className="h-1.5 rounded-full bg-white/5 overflow-hidden">
+                                                        <div className="h-full rounded-full transition-all duration-700 ease-out" style={{ width: `${score.score || 0}%`, background: score.score >= 75 ? "#24FF7C" : score.score >= 50 ? "#F59E0B" : "#FF8A8A" }} />
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
                                     </div>
 
                                     {(activeEvaluation.edit_history || []).length > 0 && (
-                                        <div className="border border-white/[0.06] rounded-xl overflow-hidden">
-                                            <button onClick={() => setShowEditHistory((v) => !v)} className="w-full flex items-center justify-between px-4 py-3 bg-black/20 hover:bg-black/30 transition-colors">
+                                        <div className="space-y-4">
+                                            <button onClick={() => setShowEditHistory((v) => !v)} className="w-full flex items-center justify-between p-4 bg-white/[0.02] border border-white/5 rounded-2xl hover:bg-white/[0.04] transition-colors">
                                                 <div className="flex items-center gap-2 text-[10px] font-black text-white/25 uppercase tracking-widest">
-                                                    <History className="w-3.5 h-3.5" /> Edit History ({(activeEvaluation.edit_history || []).length})
+                                                    <History className="w-4 h-4" /> Audit Trail ({(activeEvaluation.edit_history || []).length})
                                                 </div>
                                                 <ChevronDown className={cn("w-4 h-4 text-white/20 transition-transform", showEditHistory && "rotate-180")} />
                                             </button>
                                             {showEditHistory && (
-                                                <div className="divide-y divide-white/[0.04]">
+                                                <div className="space-y-2 px-1">
                                                     {[...(activeEvaluation.edit_history || [])].reverse().map((entry: any, i: number) => (
-                                                        <div key={i} className="px-4 py-3 flex items-center justify-between">
+                                                        <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-white/[0.01] border border-white/[0.02]">
                                                             <div>
-                                                                <span className={cn("text-[10px] font-black uppercase tracking-widest", entry.action === "approved" ? "text-[#24FF7C]" : "text-white/40")}>{entry.action}</span>
-                                                                <p className="text-[11px] text-white/20 mt-0.5">{new Date(entry.edited_at).toLocaleString()}</p>
+                                                                <span className={cn("text-[9px] font-black uppercase tracking-widest", entry.action === "approved" ? "text-[#24FF7C]" : "text-white/40")}>{entry.action}</span>
+                                                                <p className="text-[10px] text-white/20 mt-0.5">{new Date(entry.edited_at).toLocaleTimeString()}</p>
                                                             </div>
-                                                            <span className="text-lg font-black text-white/40">{Number(entry.snapshot?.total_score || 0).toFixed(1)}</span>
+                                                            <span className="text-base font-black text-white/40" style={{ fontFamily: "Outfit, sans-serif" }}>{Number(entry.snapshot?.total_score || 0).toFixed(0)}</span>
                                                         </div>
                                                     ))}
                                                 </div>
@@ -504,15 +590,19 @@ export function PerformanceContent() {
                                         </div>
                                     )}
                                 </div>
-                            ) : (
-                                <div className="h-full min-h-[300px] flex flex-col items-center justify-center text-center gap-4">
-                                    <Trophy className="w-14 h-14 text-white/[0.06]" />
-                                    <p className="text-sm text-white/25">Select a pending evaluation to review and approve AI scores.</p>
+
+                                <div className="p-8 pt-4 border-t border-white/5 bg-[#0F0F12]/80 backdrop-blur-xl grid grid-cols-2 gap-4">
+                                    <button onClick={() => saveEvaluationDraft("pending")} className="h-14 rounded-2xl bg-white/[0.05] border border-white/10 hover:bg-white/[0.08] text-white text-[11px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all">
+                                        <Save className="w-4 h-4" /> Save
+                                    </button>
+                                    <button onClick={() => saveEvaluationDraft("approved")} className="h-14 rounded-2xl bg-[#24FF7C] text-black text-[11px] font-black uppercase tracking-widest flex items-center justify-center gap-2 shadow-[0_10px_30px_rgba(36,255,124,0.3)] hover:scale-[1.02] transition-all">
+                                        <CheckCircle2 className="w-4 h-4" /> Approve
+                                    </button>
                                 </div>
-                            )}
-                        </motion.div>
-                    </div>
-                )}
+                            </motion.div>
+                        </>
+                    )}
+                </AnimatePresence>
 
                 {/* ── Row 4: Metrics Config ── */}
                 <motion.div variants={staggerItem} className="glass-panel rounded-[2.5rem] p-8 space-y-6">
@@ -537,72 +627,93 @@ export function PerformanceContent() {
                             <option value="all">All Members</option>
                             {members.map(m => <option key={m.id} value={m.id}>{m.full_name || m.alias}</option>)}
                         </select>
-                        <input type="number" step="0.1" min="0.1" value={newMetric.weight} onChange={(e) => setNewMetric({ ...newMetric, weight: Number(e.target.value) })} className="h-11 rounded-xl bg-black/30 border border-white/10 px-3 text-sm text-white focus:outline-none focus:border-[#24FF7C]/40" />
+                        <div className="space-y-1.5">
+                            <input 
+                                type="number" 
+                                step="0.1" 
+                                min="0.1" 
+                                placeholder="Weight"
+                                value={newMetric.weight} 
+                                onChange={(e) => setNewMetric({ ...newMetric, weight: Number(e.target.value) })} 
+                                className="h-11 w-full rounded-xl bg-black/30 border border-white/10 px-3 text-sm text-white focus:outline-none focus:border-[#24FF7C]/40 placeholder:text-white/20" 
+                            />
+                        </div>
                         <button onClick={addMetric} className="h-11 px-5 rounded-xl bg-[#24FF7C] text-black text-[10px] font-black uppercase tracking-widest flex items-center gap-2 shadow-[0_0_15px_rgba(36,255,124,0.25)] hover:shadow-[0_0_25px_rgba(36,255,124,0.4)] transition-all">
                             <Plus className="w-4 h-4" /> Add
                         </button>
                     </div>
 
-                        {metrics.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center py-10 gap-4">
-                                <p className="text-sm text-white/20 text-center">No metrics defined. Add one above or start with our professional standards.</p>
-                                <button 
-                                    onClick={async () => {
-                                        setIsLoading(true);
-                                        try {
-                                            const res = await fetch("/api/analysis/run", { 
-                                                method: "POST", 
-                                                headers: { "Content-Type": "application/json" }, 
-                                                body: JSON.stringify({ analysis_type: "provision_metrics" }) 
-                                            });
-                                            if (!res.ok) throw new Error("Failed to provision.");
-                                            toast.success("Default metrics provisioned.");
-                                            await loadData();
-                                        } catch (e: any) { toast.error(e.message); }
-                                        finally { setIsLoading(false); }
-                                    }}
-                                    className="h-10 px-6 rounded-xl bg-white/[0.05] border border-white/10 hover:bg-white/[0.1] text-white text-[10px] font-black uppercase tracking-widest transition-all"
-                                >
-                                    Provision Professional Defaults
-                                </button>
-                            </div>
-                        ) : (
-                            // Existing metrics list logic...
-                            <>
-                                {globalMetrics.length > 0 && (
-                                    <div>
-                                        <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.25em] mb-3">Global — all roles</p>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
-                                            {globalMetrics.map((m) => (
-                                                <div key={m.id} className="p-4 rounded-xl bg-white/[0.03] border border-white/[0.06] flex items-center justify-between gap-3 group hover:border-white/10 transition-all">
-                                                    <div className="min-w-0">
-                                                        <p className="text-sm font-black text-white">{m.name}</p>
-                                                        <p className="text-xs text-white/30 mt-0.5 truncate">{m.description || "—"}</p>
-                                                    </div>
-                                                    <span className="text-[11px] font-black text-[#24FF7C] bg-[#24FF7C]/10 px-2 py-1 rounded-lg border border-[#24FF7C]/20 shrink-0">×{Number(m.weight).toFixed(1)}</span>
-                                                </div>
-                                            ))}
-                                        </div>
+                    {metrics.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center py-10 gap-4">
+                            <p className="text-sm text-white/20 text-center">No metrics defined. Add one above or start with our professional standards.</p>
+                            <button 
+                                onClick={async () => {
+                                    setIsLoading(true);
+                                    try {
+                                        const res = await fetch("/api/analysis/run", { 
+                                            method: "POST", 
+                                            headers: { "Content-Type": "application/json" }, 
+                                            body: JSON.stringify({ analysis_type: "provision_metrics" }) 
+                                        });
+                                        if (!res.ok) throw new Error("Failed to provision.");
+                                        toast.success("Default metrics provisioned.");
+                                        await loadData();
+                                    } catch (e: any) { toast.error(e.message); }
+                                    finally { setIsLoading(false); }
+                                }}
+                                className="h-10 px-6 rounded-xl bg-white/[0.05] border border-white/10 hover:bg-white/[0.1] text-white text-[10px] font-black uppercase tracking-widest transition-all"
+                            >
+                                Provision Professional Defaults
+                            </button>
+                        </div>
+                    ) : (
+                        <>
+                            {globalMetrics.length > 0 && (
+                                <div className="space-y-4">
+                                    <div className="flex items-center gap-2 px-2">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-white/20" />
+                                        <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em]">Global Standards — All Roles</p>
                                     </div>
-                                )}
-                                {Object.entries(roleGroups).map(([role, rMetrics]) => (
-                                    <div key={role}>
-                                        <p className="text-[10px] font-black text-[#8B5CF6]/60 uppercase tracking-[0.25em] mb-3 mt-4">Role: {role}</p>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
-                                            {rMetrics.map((m) => (
-                                                <div key={m.id} className="p-4 rounded-xl bg-[#8B5CF6]/[0.04] border border-[#8B5CF6]/10 flex items-center justify-between gap-3 group hover:border-[#8B5CF6]/20 transition-all">
-                                                    <div className="min-w-0">
-                                                        <p className="text-sm font-black text-white">{m.name}</p>
-                                                        <p className="text-xs text-white/30 mt-0.5 truncate">{m.description || "—"}</p>
-                                                    </div>
-                                                    <span className="text-[11px] font-black text-[#8B5CF6] bg-[#8B5CF6]/10 px-2 py-1 rounded-lg border border-[#8B5CF6]/20 shrink-0">×{Number(m.weight).toFixed(1)}</span>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                                        {globalMetrics.map((m) => (
+                                            <div key={m.id} className="group p-5 rounded-2xl bg-white/[0.02] border border-white/[0.06] flex items-center justify-between gap-4 hover:bg-white/[0.04] hover:border-white/20 transition-all shadow-sm">
+                                                <div className="min-w-0">
+                                                    <p className="text-sm font-black text-white group-hover:text-[#24FF7C] transition-colors">{m.name}</p>
+                                                    <p className="text-[11px] text-white/30 mt-1 leading-relaxed line-clamp-1">{m.description || "No description provided."}</p>
                                                 </div>
-                                            ))}
-                                        </div>
+                                                <div className="flex flex-col items-center shrink-0">
+                                                    <span className="text-[13px] font-black text-[#24FF7C]" style={{ fontFamily: "Outfit, sans-serif" }}>×{Number(m.weight).toFixed(1)}</span>
+                                                    <span className="text-[8px] font-black text-white/20 uppercase tracking-tighter">Weight</span>
+                                                </div>
+                                            </div>
+                                        ))}
                                     </div>
-                                ))}
-                            </>
-                        )}
+                                </div>
+                            )}
+                            {Object.entries(roleGroups).map(([role, rMetrics]) => (
+                                <div key={role} className="space-y-4 mt-8">
+                                    <div className="flex items-center gap-2 px-2">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-[#8B5CF6]/40" />
+                                        <p className="text-[10px] font-black text-[#8B5CF6]/60 uppercase tracking-[0.3em]">Role Specfic — {role}</p>
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                                        {rMetrics.map((m) => (
+                                            <div key={m.id} className="group p-5 rounded-2xl bg-[#8B5CF6]/[0.03] border border-[#8B5CF6]/10 flex items-center justify-between gap-4 hover:bg-[#8B5CF6]/[0.06] hover:border-[#8B5CF6]/30 transition-all">
+                                                <div className="min-w-0">
+                                                    <p className="text-sm font-black text-white group-hover:text-[#8B5CF6] transition-colors">{m.name}</p>
+                                                    <p className="text-[11px] text-white/30 mt-1 leading-relaxed line-clamp-1">{m.description || "—"}</p>
+                                                </div>
+                                                <div className="flex flex-col items-center shrink-0">
+                                                    <span className="text-[13px] font-black text-[#8B5CF6]" style={{ fontFamily: "Outfit, sans-serif" }}>×{Number(m.weight).toFixed(1)}</span>
+                                                    <span className="text-[8px] font-black text-white/20 uppercase tracking-tighter">Weight</span>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            ))}
+                        </>
+                    )}
                 </motion.div>
 
                 {/* ── Row 5: Approved History ── */}
@@ -642,7 +753,7 @@ export function PerformanceContent() {
                                             <p className="text-[10px] text-white/30 uppercase tracking-widest">{item.members?.role || "No role"}</p>
                                         </div>
                                         <div className="text-right">
-                                            <p className="text-2xl font-black text-[#24FF7C]">{Number(item.total_score).toFixed(0)}</p>
+                                            <p className="text-2xl font-black text-[#24FF7C]" style={{ fontFamily: "Outfit, sans-serif" }}>{Number(item.total_score).toFixed(0)}</p>
                                             <p className="text-[10px] text-white/20">/100</p>
                                         </div>
                                     </div>

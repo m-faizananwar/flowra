@@ -63,7 +63,7 @@ const MENU_SECTIONS = [
         title: "Intelligence & Data",
         items: [
             { icon: Target, label: "Performance", href: "/performance" },
-            { icon: AlertTriangle, label: "Risk Assessment", href: "/triage" },
+            { icon: AlertTriangle, label: "Risk Assessment", href: "/risk" },
             { icon: AreaChart, label: "Sprint Analytics", href: "/sprints" },
         ]
     },
@@ -124,8 +124,8 @@ export function Sidebar({
                     {/* Header Profile Section */}
                     <div className={cn("p-7 pb-2", isCollapsed && "p-4")}>
                         <div className={cn("flex items-center justify-between mb-8", isCollapsed && "flex-col gap-6")}>
-                            <div className="flex items-center gap-3">
-                                <div className="relative">
+                            <div className="flex items-center gap-3 min-w-0 flex-1">
+                                <div className="relative shrink-0">
                                     <div className="w-11 h-11 rounded-full border-2 border-white/10 p-0.5 overflow-hidden">
                                         <div className="w-full h-full rounded-full bg-gradient-to-br from-[#10B981] to-[#3B82F6] flex items-center justify-center shadow-inner">
                                             <UserCircle className="w-7 h-7 text-white/80" />
@@ -139,30 +139,37 @@ export function Sidebar({
                                     <motion.div
                                         initial={{ opacity: 0, x: -10 }}
                                         animate={{ opacity: 1, x: 0 }}
+                                        className="min-w-0"
                                     >
-                                        <h4 className="text-[14px] font-black text-white tracking-tight leading-none mb-1 uppercase">
+                                        <h4 className="text-[14px] font-black text-white tracking-tight leading-none mb-1 uppercase truncate">
                                             {userData.name || "User"}
                                         </h4>
                                         <div className="flex items-center gap-1 opacity-40">
                                             <div className="w-1 h-1 rounded-full bg-white" />
-                                            <p className="text-[10px] text-white font-black uppercase tracking-wider">
+                                            <p className="text-[10px] text-white font-black uppercase tracking-wider truncate">
                                                 {userData.name ? "Node Active" : "Initializing..."}
                                             </p>
                                         </div>
                                     </motion.div>
                                 )}
                             </div>
-                            <div className={cn("flex items-center gap-1.5", isCollapsed && "flex-col")}>
+                            <div className={cn("flex items-center gap-2 shrink-0 ml-4", isCollapsed && "flex-col ml-0")}>
                                 <button 
                                     onClick={() => setIsCollapsed(!isCollapsed)}
-                                    className="p-2.5 rounded-xl hover:bg-white/5 transition-all text-white/20 active:scale-90 group relative"
+                                    className="w-10 h-10 rounded-xl bg-white/[0.03] border border-white/10 flex items-center justify-center hover:bg-white/10 hover:border-[#24FF7C]/30 transition-all text-white group shadow-xl"
+                                    title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
                                 >
-                                    {isCollapsed ? <ChevronRight className="w-4 h-4 group-hover:text-white" /> : <ChevronLeft className="w-4 h-4 group-hover:text-white" />}
+                                    <motion.div
+                                        animate={{ rotate: isCollapsed ? 180 : 0 }}
+                                        transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                                    >
+                                        <ChevronLeft className="w-5 h-5 text-white/40 group-hover:text-[#24FF7C]" />
+                                    </motion.div>
                                 </button>
                                 
-                                <button className="p-2.5 rounded-xl hover:bg-white/5 transition-all text-white/20 active:scale-90 relative group">
+                                <button className="w-10 h-10 rounded-xl bg-white/[0.03] border border-white/10 flex items-center justify-center hover:bg-white/10 transition-all text-white/20 group relative">
                                     <Bell className="w-4 h-4 group-hover:text-white" />
-                                    <span className="absolute top-2.5 right-2.5 w-1.5 h-1.5 bg-[#24FF7C] rounded-full border-2 border-[#17181C]" />
+                                    <span className="absolute top-2.5 right-2.5 w-1.5 h-1.5 bg-[#24FF7C] rounded-full border-2 border-[#17181C] shadow-[0_0_10px_#24FF7C]" />
                                 </button>
                             </div>
                         </div>

@@ -36,9 +36,26 @@ const STATUS_CONFIG: Record<string, any> = {
     pending: { icon: Clock, color: "text-white/30 bg-white/5 border-white/10", label: "Queued" },
 };
 
+import { CustomDropdown } from "@/components/ui/CustomDropdown";
+
+const STATUS_FILTER_OPTIONS = [
+    { value: "all", label: "All Status", icon: Filter },
+    { value: "verified", label: "Neural Pass", icon: ShieldCheck },
+    { value: "scanning", label: "Analyzing", icon: RefreshCw },
+    { value: "at_risk", label: "Drift Detect", icon: ShieldAlert },
+];
+
+const SOURCE_FILTER_OPTIONS = [
+    { value: "all", label: "All Sources", icon: GitPullRequest },
+    { value: "github", label: "GitHub", icon: Activity },
+    { value: "gitlab", label: "GitLab", icon: User },
+];
+
 export function PrVerificationContent() {
     const [isLoading, setIsLoading] = useState(true);
     const [search, setSearch] = useState("");
+    const [statusFilter, setStatusFilter] = useState("all");
+    const [sourceFilter, setSourceFilter] = useState("all");
 
     useEffect(() => {
         const timer = setTimeout(() => setIsLoading(false), 800);
@@ -46,11 +63,14 @@ export function PrVerificationContent() {
     }, []);
 
     const filteredPrs = useMemo(() => {
-        return MOCK_PRS.filter(pr => 
-            pr.title.toLowerCase().includes(search.toLowerCase()) || 
-            pr.author.toLowerCase().includes(search.toLowerCase())
-        );
-    }, [search]);
+        return MOCK_PRS.filter(pr => {
+            const matchesSearch = pr.title.toLowerCase().includes(search.toLowerCase()) || 
+                                pr.author.toLowerCase().includes(search.toLowerCase());
+            const matchesStatus = statusFilter === "all" || pr.status === statusFilter;
+            const matchesSource = sourceFilter === "all" || pr.system.toLowerCase() === sourceFilter;
+            return matchesSearch && matchesStatus && matchesSource;
+        });
+    }, [search, statusFilter, sourceFilter]);
 
     if (isLoading) {
         return (
@@ -71,7 +91,7 @@ export function PrVerificationContent() {
             >
                 {/* Search & Actions Bar */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-4 flex-wrap">
                         <div className="relative group">
                             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-focus-within:text-blue-400 transition-colors" />
                             <input
@@ -79,13 +99,21 @@ export function PrVerificationContent() {
                                 placeholder="Search PRs..."
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
-                                className="h-12 w-full md:w-80 bg-white/[0.03] border border-white/10 rounded-2xl pl-11 pr-4 text-sm text-white focus:outline-none focus:border-blue-400/50 transition-all font-bold"
+                                className="h-12 w-full md:w-64 bg-white/[0.03] border border-white/10 rounded-2xl pl-11 pr-4 text-sm text-white focus:outline-none focus:border-blue-400/50 transition-all font-bold"
                             />
                         </div>
-                        <button className="flex items-center gap-2 px-5 h-12 rounded-2xl bg-white/[0.03] border border-white/10 text-white/60 hover:text-white hover:bg-white/[0.06] transition-all">
-                            <Filter className="w-4 h-4" />
-                            <span className="text-[10px] font-black uppercase tracking-widest hidden sm:inline">Filter</span>
-                        </button>
+                        <CustomDropdown 
+                            options={STATUS_FILTER_OPTIONS}
+                            value={statusFilter}
+                            onChange={setStatusFilter}
+                            className="w-44"
+                        />
+                        <CustomDropdown 
+                            options={SOURCE_FILTER_OPTIONS}
+                            value={sourceFilter}
+                            onChange={setSourceFilter}
+                            className="w-44"
+                        />
                     </div>
 
                     <div className="flex items-center gap-2">

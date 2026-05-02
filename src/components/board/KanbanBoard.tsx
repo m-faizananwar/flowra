@@ -16,10 +16,12 @@ import {
     ShieldCheck,
     Zap,
     Layout,
-    Columns
+    Columns,
+    Cpu
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PageTransition, staggerContainer, staggerItem } from "@/components/animations/PageTransition";
+import { CustomDropdown } from "@/components/ui/CustomDropdown";
 
 const MOCK_BOARD_DATA = {
     "TO DO": [
@@ -100,7 +102,22 @@ function TaskCard({ task, i }: { task: any, i: number }) {
     );
 }
 
+const PROJECT_OPTIONS = [
+    { value: "all", label: "All Projects", icon: Layout },
+    { value: "flowra", label: "Flowra Core", icon: Zap },
+    { value: "engine", label: "Neural Engine", icon: Cpu },
+];
+
+const ASSIGNEE_OPTIONS = [
+    { value: "all", label: "All Members", icon: Filter },
+    { value: "me", label: "Assigned to Me", icon: ShieldCheck },
+    { value: "team", label: "Team Sync", icon: RefreshCw },
+];
+
 export function KanbanBoard() {
+    const [project, setProject] = useState("flowra");
+    const [assignee, setAssignee] = useState("all");
+
     return (
         <PageTransition pageTitle="Agile Board">
             <motion.div
@@ -115,27 +132,24 @@ export function KanbanBoard() {
                         <h1 className="text-4xl font-black text-white font-[family-name:var(--font-outfit)] tracking-tight italic">
                             JIRA SYNC BOARD
                         </h1>
-                        <p className="text-[11px] font-black text-white/30 uppercase tracking-[0.3em] mt-1">Simulated 1:1 project orchestration</p>
+                        <p className="text-[11px] font-black text-white/30 uppercase tracking-[0.3em] mt-1 italic">Simulated 1:1 project orchestration</p>
                     </div>
 
-                    <div className="flex items-center gap-3">
-                        <div className="flex items-center gap-1.5 p-1 bg-white/[0.02] border border-white/5 rounded-2xl mr-4">
-                            <button className="p-2.5 rounded-xl bg-[#24FF7C] text-black shadow-[0_0_15px_rgba(36,255,124,0.3)] transition-all">
-                                <Layout className="w-4 h-4" />
-                            </button>
-                            <button className="p-2.5 rounded-xl text-white/20 hover:text-white hover:bg-white/5 transition-all">
-                                <Columns className="w-4 h-4" />
-                            </button>
-                        </div>
-                        <div className="relative group">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-focus-within:text-[#24FF7C] transition-colors" />
-                            <input
-                                type="text"
-                                placeholder="Search sprint..."
-                                className="h-12 w-48 bg-white/[0.03] border border-white/10 rounded-2xl pl-11 pr-4 text-sm text-white focus:outline-none focus:border-[#24FF7C]/50 transition-all font-bold"
-                            />
-                        </div>
-                        <button className="flex items-center gap-2.5 px-6 h-12 rounded-2xl bg-[#24FF7C] text-black text-[11px] font-black uppercase tracking-widest hover:brightness-110 shadow-[0_4px_20px_rgba(36,255,124,0.15)] active:scale-95 transition-all">
+                    <div className="flex items-center gap-4 flex-wrap">
+                        <CustomDropdown 
+                            options={PROJECT_OPTIONS}
+                            value={project}
+                            onChange={setProject}
+                            className="w-48"
+                        />
+                        <CustomDropdown 
+                            options={ASSIGNEE_OPTIONS}
+                            value={assignee}
+                            onChange={setAssignee}
+                            className="w-48"
+                        />
+                        <div className="h-10 w-[1px] bg-white/5 mx-2 hidden xl:block" />
+                        <button className="flex items-center gap-2.5 px-6 h-12 rounded-2xl bg-[#24FF7C] text-black text-[11px] font-black uppercase tracking-widest hover:brightness-110 shadow-[0_10px_30px_rgba(36,255,124,0.3)] active:scale-95 transition-all">
                             <Plus className="w-4 h-4 stroke-[3px]" />
                             Create Issue
                         </button>
