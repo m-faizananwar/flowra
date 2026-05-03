@@ -22,12 +22,14 @@ import { DiscordConnectorModal } from "./DiscordConnectorModal";
 import { TelegramConnectorModal } from "./TelegramConnectorModal";
 import { SlackConnectorModal } from "./SlackConnectorModal";
 import GitHubConnectorModal from "./GitHubConnectorModal";
+import { JiraConnectorModal } from "./JiraConnectorModal";
 import MembersModal from "./MembersModal";
 import DeleteConfirmationModal from "./DeleteConfirmationModal";
+import React from "react";
 
 const MOCK_INTEGRATIONS = [
     { id: "github", name: "GitHub", category: "Version Control", icon: "https://cdn.simpleicons.org/github/white", status: "not_connected", lastSync: "N/A", color: "text-white" },
-    { id: "jira", name: "Jira Cloud", category: "Project Management", icon: "https://cdn.simpleicons.org/jira/0052CC", status: "connected", lastSync: "15s ago", color: "text-blue-400" },
+    { id: "jira", name: "Jira Cloud", category: "Project Management", icon: "https://cdn.simpleicons.org/jira/0052CC", status: "not_connected", lastSync: "N/A", color: "text-blue-400" },
     { id: "discord", name: "Discord", category: "Communications", icon: "https://cdn.simpleicons.org/discord/5865F2", status: "not_connected", lastSync: "N/A", color: "text-indigo-400" },
     { id: "slack", name: "Slack Enterprise", category: "Communications", icon: "https://www.vectorlogo.zone/logos/slack/slack-icon.svg", status: "not_connected", lastSync: "N/A", color: "text-purple-400" },
     { id: "telegram", name: "Telegram", category: "Communications", icon: "https://cdn.simpleicons.org/telegram/26A69A", status: "not_connected", lastSync: "N/A", color: "text-sky-400" },
@@ -290,6 +292,7 @@ export function IntegrationsContent() {
                                     if (app.id === "telegram") setActiveModal("telegram");
                                     if (app.id === "slack") setActiveModal("slack");
                                     if (app.id === "github") setActiveModal("github");
+                                    if (app.id === "jira") setActiveModal("jira");
                                 }}>
                                     <h4 className={cn("text-xl font-black transition-colors", isConnected ? "text-black" : "text-white group-hover:text-black")}>{app.name}</h4>
                                     <div className="flex items-center gap-2 mt-1">
@@ -312,6 +315,7 @@ export function IntegrationsContent() {
                                             if (app.id === "telegram") setActiveModal("telegram");
                                             if (app.id === "slack") setActiveModal("slack");
                                             if (app.id === "github") setActiveModal("github");
+                                            if (app.id === "jira") setActiveModal("jira");
                                         }}
                                         className={cn("flex items-center gap-2 text-[10px] font-black uppercase tracking-widest transition-colors", isConnected ? "text-black/40 hover:text-black" : "text-white/40 hover:text-white group-hover:text-black/40 group-hover:hover:text-black")}
                                     >
@@ -330,6 +334,7 @@ export function IntegrationsContent() {
                                                 if (app.id === "telegram") setActiveModal("telegram");
                                                 if (app.id === "slack") setActiveModal("slack");
                                                 if (app.id === "github") setActiveModal("github");
+                                                if (app.id === "jira") setActiveModal("jira");
                                             }}
                                             className="flex items-center gap-1.5 text-[#8B5CF6] group/btn group-hover:text-black transition-colors"
                                         >
@@ -376,6 +381,15 @@ export function IntegrationsContent() {
                 isOpen={activeModal === "github"} 
                 onClose={() => setActiveModal(null)}
                 integration={userIntegrations.find(ui => ui.service_name === "github")}
+            />
+            <JiraConnectorModal 
+                isOpen={activeModal === "jira"} 
+                onClose={() => setActiveModal(null)}
+                initialData={userIntegrations.find(ui => ui.service_name === "jira")}
+                onSuccess={() => {
+                    fetchIntegrations();
+                    toast.success("Jira Agent established.");
+                }}
             />
 
             {/* Managed Members Modal */}
