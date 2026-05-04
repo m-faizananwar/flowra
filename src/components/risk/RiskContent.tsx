@@ -64,6 +64,7 @@ import { cn } from "@/lib/utils";
 import { PageTransition, staggerContainer, staggerItem } from "@/components/animations/PageTransition";
 import { CustomDropdown } from "@/components/ui/CustomDropdown";
 import { supabase } from "@/lib/supabase";
+import React from "react";
 
 const DEFAULT_SETTING = {
     timezone: "Asia/Karachi",

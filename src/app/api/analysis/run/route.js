@@ -6,8 +6,8 @@ export async function POST(request) {
   const body = await request.json().catch(() => ({}));
   const analysisType = body.analysis_type;
 
-  if (!['risk', 'evaluation', 'provision_metrics'].includes(analysisType)) {
-    return NextResponse.json({ error: 'analysis_type must be risk, evaluation, or provision_metrics' }, { status: 400 });
+  if (!['risk', 'evaluation', 'provision_metrics', 'jira'].includes(analysisType)) {
+    return NextResponse.json({ error: 'analysis_type must be risk, evaluation, provision_metrics, or jira' }, { status: 400 });
   }
 
   const userClient = createClient(
