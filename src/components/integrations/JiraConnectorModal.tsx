@@ -85,7 +85,7 @@ export function JiraConnectorModal({ isOpen, onClose, onSuccess, initialData }: 
         // Jira OAuth 2.0 (3LO) Construction
         const CLIENT_ID = process.env.NEXT_PUBLIC_JIRA_CLIENT_ID;
         const CALLBACK_URL = encodeURIComponent(process.env.NEXT_PUBLIC_JIRA_CALLBACK_URL || "http://localhost:3000/api/auth/jira/callback");
-        const SCOPES = encodeURIComponent("offline_access read:jira-work write:jira-work read:me manage:jira-project");
+        const SCOPES = encodeURIComponent("offline_access read:jira-work write:jira-work read:me manage:jira-project read:project:jira read:jira-user read:board-scope:jira read:board-scope:jira-software read:sprint:jira-software read:issue:jira-software read:jira-report");
         
         if (!CLIENT_ID) {
             toast.error("Jira Client ID not configured in .env");
