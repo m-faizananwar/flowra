@@ -46,7 +46,7 @@ export async function GET(request) {
       .select('issue_key, summary, status, priority, assignee_name, story_points')
       .eq('user_id', user.id)
       .order('updated_at', { ascending: false })
-      .limit(20);
+      .limit(50);
 
     return NextResponse.json({
       activeSprint: activeSprint || null,

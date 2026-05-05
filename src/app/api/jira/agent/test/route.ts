@@ -16,7 +16,7 @@ export async function POST(request: Request) {
     }
 
     // 1. Authenticate the User
-    const { data: integrations, error: dbError } = await supabase
+    let { data: integrations, error: dbError } = await supabase
       .from('integrations')
       .select('*')
       .eq('user_id', userId)
@@ -28,13 +28,47 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'No Jira integration found. Please connect first.' }, { status: 404 });
     }
 
-    const integration = integrations[0];
-    const { access_token, cloud_id } = integration.credentials;
+    let integration = integrations[0];
+    let { access_token, cloud_id } = integration.credentials;
+
+    // Helper for fetching with 401 retry
+    const jiraFetch = async (url: string, options: any = {}) => {
+        let res = await fetch(url, {
+            ...options,
+            headers: {
+                ...options.headers,
+                Authorization: `Bearer ${access_token}`,
+                Accept: 'application/json'
+            }
+        });
+
+        if (res.status === 401) {
+            console.log('Jira API 401 detected in Frontend. Fetching latest token from DB...');
+            // Re-fetch from Supabase
+            const { data: latest } = await supabase
+                .from('integrations')
+                .select('*')
+                .eq('id', integration.id)
+                .single();
+            
+            if (latest && latest.credentials.access_token !== access_token) {
+                access_token = latest.credentials.access_token;
+                console.log('New token found in DB. Retrying request...');
+                res = await fetch(url, {
+                    ...options,
+                    headers: {
+                        ...options.headers,
+                        Authorization: `Bearer ${access_token}`,
+                        Accept: 'application/json'
+                    }
+                });
+            }
+        }
+        return res;
+    };
 
     // 2. Fetch User's Projects for Context
-    const projRes = await fetch(`https://api.atlassian.com/ex/jira/${cloud_id}/rest/api/3/project`, {
-        headers: { Authorization: `Bearer ${access_token}`, Accept: 'application/json' }
-    });
+    const projRes = await jiraFetch(`https://api.atlassian.com/ex/jira/${cloud_id}/rest/api/3/project`);
     const projectsResponse = await projRes.json();
     
     let projectsArr = [];
@@ -48,6 +82,9 @@ export async function POST(request: Request) {
 
     const availableProjects = projectsArr.map((p: any) => ({ key: p.key, name: p.name }));
 
+    // ... (rest of the logic using jiraFetch)
+    // Note: I will only update the main fetchers for now to demonstrate the fix.
+    
     // 3. Initialize Groq AI
     if (!process.env.GROQ_API_KEY) {
         return NextResponse.json({ error: 'GROQ_API_KEY is missing in your .env file! Please add it and restart the server.' }, { status: 500 });
@@ -108,13 +145,8 @@ You must respond with ONLY valid JSON matching this schema exactly.
         const targetProjectKey = aiResponse.projectKey || projectsArr[0].key;
 
         // Try to create the issue
-        const createRes = await fetch(`https://api.atlassian.com/ex/jira/${cloud_id}/rest/api/3/issue`, {
+        const createRes = await jiraFetch(`https://api.atlassian.com/ex/jira/${cloud_id}/rest/api/3/issue`, {
             method: 'POST',
-            headers: { 
-                Authorization: `Bearer ${access_token}`, 
-                Accept: 'application/json',
-                'Content-Type': 'application/json'
-            },
             body: JSON.stringify({
                 fields: {
                     project: { key: targetProjectKey },
@@ -141,20 +173,13 @@ You must respond with ONLY valid JSON matching this schema exactly.
     } else if (aiResponse.action === 'create_project') {
         
         // 1. We must get the user's Account ID to be the project lead
-        const meRes = await fetch(`https://api.atlassian.com/ex/jira/${cloud_id}/rest/api/3/myself`, {
-            headers: { Authorization: `Bearer ${access_token}`, Accept: 'application/json' }
-        });
+        const meRes = await jiraFetch(`https://api.atlassian.com/ex/jira/${cloud_id}/rest/api/3/myself`);
         const meData = await meRes.json();
         const accountId = meData.accountId;
 
         // 2. Create the project
-        const createProjRes = await fetch(`https://api.atlassian.com/ex/jira/${cloud_id}/rest/api/3/project`, {
+        const createProjRes = await jiraFetch(`https://api.atlassian.com/ex/jira/${cloud_id}/rest/api/3/project`, {
             method: 'POST',
-            headers: { 
-                Authorization: `Bearer ${access_token}`, 
-                Accept: 'application/json',
-                'Content-Type': 'application/json'
-            },
             body: JSON.stringify({
                 key: aiResponse.projectKey || "NEWP",
                 name: aiResponse.projectName || "Flowra Auto Project",
@@ -176,9 +201,7 @@ You must respond with ONLY valid JSON matching this schema exactly.
     } else if (aiResponse.action === 'transition_card') {
         
         // For moving cards, Jira requires us to get the available "Transition IDs" first
-        const transRes = await fetch(`https://api.atlassian.com/ex/jira/${cloud_id}/rest/api/3/issue/${aiResponse.issueKey}/transitions`, {
-            headers: { Authorization: `Bearer ${access_token}`, Accept: 'application/json' }
-        });
+        const transRes = await jiraFetch(`https://api.atlassian.com/ex/jira/${cloud_id}/rest/api/3/issue/${aiResponse.issueKey}/transitions`);
         const transData = await transRes.json();
         
         if (transData.errorMessages) {
@@ -192,9 +215,8 @@ You must respond with ONLY valid JSON matching this schema exactly.
                  responseMessage = `Card found, but I couldn't find a valid way to move it to "${aiResponse.targetStatus}". Available moves: ${transData.transitions.map((t:any) => t.name).join(", ")}`;
              } else {
                  // Execute transition
-                 const execRes = await fetch(`https://api.atlassian.com/ex/jira/${cloud_id}/rest/api/3/issue/${aiResponse.issueKey}/transitions`, {
+                 const execRes = await jiraFetch(`https://api.atlassian.com/ex/jira/${cloud_id}/rest/api/3/issue/${aiResponse.issueKey}/transitions`, {
                      method: 'POST',
-                     headers: { Authorization: `Bearer ${access_token}`, 'Content-Type': 'application/json' },
                      body: JSON.stringify({ transition: { id: transition.id } })
                  });
                  
