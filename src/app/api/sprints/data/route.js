@@ -1,6 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request) {
   try {
     const authHeader = request.headers.get('authorization') || '';
@@ -41,12 +43,14 @@ export async function GET(request) {
       .limit(5);
 
     // Fetch cached Jira issues for this user's active sprint
-    const { data: jiraIssues } = await serviceClient
+    // 4. Get jira_issues for this user that are strictly in the active sprint
+    const { data: jiraIssues, error: issuesError } = await serviceClient
       .from('jira_issues')
-      .select('issue_key, summary, status, priority, assignee_name, story_points')
+      .select('*')
       .eq('user_id', user.id)
-      .order('updated_at', { ascending: false })
-      .limit(50);
+      .eq('sprint_jira_id', activeSprint?.jira_sprint_id);
+
+    if (issuesError) throw issuesError;
 
     return NextResponse.json({
       activeSprint: activeSprint || null,

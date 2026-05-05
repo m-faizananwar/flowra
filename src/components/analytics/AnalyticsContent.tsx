@@ -42,6 +42,7 @@ export function AnalyticsContent() {
 
       const res = await fetch('/api/sprints/data', {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
+        cache: 'no-store'
       });
       if (!res.ok) throw new Error(await res.text());
       setData(await res.json());
@@ -52,7 +53,31 @@ export function AnalyticsContent() {
     }
   };
 
-  useEffect(() => { fetchData(); }, []);
+  useEffect(() => {
+    fetchData();
+
+    // Set up Realtime listener for live updates
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
+
+    const channel = supabase
+      .channel('jira-live-updates')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'jira_issues' },
+        () => {
+          console.log('Realtime update detected: Syncing dashboard...');
+          fetchData();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
   if (isLoading) {
     return (
