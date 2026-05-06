@@ -18,7 +18,6 @@ import {
     ChevronRight,
     UserCircle,
     Zap,
-    Bell,
     Home as HomeIcon,
     Table,
     CalendarClock,
@@ -150,11 +149,6 @@ export function Sidebar({
                                     >
                                         <ChevronLeft className="w-5 h-5 text-white/40 group-hover:text-[#24FF7C]" />
                                     </motion.div>
-                                </button>
-                                
-                                <button className="w-10 h-10 rounded-xl bg-white/[0.03] border border-white/10 flex items-center justify-center hover:bg-white/10 transition-all text-white/20 group relative">
-                                    <Bell className="w-4 h-4 group-hover:text-white" />
-                                    <span className="absolute top-2.5 right-2.5 w-1.5 h-1.5 bg-[#24FF7C] rounded-full border-2 border-[#17181C] shadow-[0_0_10px_#24FF7C]" />
                                 </button>
                             </div>
                         </div>
@@ -314,9 +308,10 @@ export function Sidebar({
                             </div>
                                 {isProfileMenuOpen && (
                                     <div className={cn(
-                                        "absolute z-50 mt-2 rounded-xl border border-white/10 bg-[#121316] shadow-2xl overflow-hidden",
+                                        "absolute z-50 mb-2 rounded-xl border border-white/10 bg-[#121316] shadow-2xl overflow-hidden",
                                         isCollapsed ? "left-1/2 -translate-x-1/2 w-40" : "right-0 w-44"
-                                    )}>
+                                    )}
+                                    style={{ bottom: "100%" }}>
                                         <button
                                             onClick={(e) => {
                                                 e.stopPropagation();
