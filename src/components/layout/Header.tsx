@@ -36,17 +36,8 @@ export function Header({ userEmail = "User" }: HeaderProps) {
                 </p>
             </div>
 
-            <div className="flex items-center gap-6">
-                <div className="flex items-center gap-4">
-                    <NotificationsPanel />
-                </div>
-                
-                <div className="flex items-center">
-                    <div className="text-right hidden sm:block">
-                        <p className="text-[10px] font-black text-white uppercase tracking-wider">{userEmail.split('@')[0]}</p>
-                        <p className="text-[8px] font-bold text-[#24FF7C] uppercase tracking-widest leading-none mt-0.5">Pro Member</p>
-                    </div>
-                </div>
+            <div className="flex items-center gap-4">
+                <NotificationsPanel />
             </div>
         </header>
     );
