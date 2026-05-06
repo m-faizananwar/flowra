@@ -37,6 +37,7 @@ export async function POST(request) {
     body: JSON.stringify({
       user_id: user.id,
       analysis_type: analysisType,
+      sync_only: !!body.sync_only,
     }),
   });
 

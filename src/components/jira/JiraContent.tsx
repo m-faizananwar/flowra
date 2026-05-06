@@ -185,7 +185,7 @@ export function JiraContent() {
     const pendingApprovals = useMemo(() => approvals.filter(a => a.status === "pending"), [approvals]);
     const archivedApprovals = useMemo(() => {
         return approvals.filter(a => {
-            const isArchived = a.status === "approved" || a.status === "rejected";
+            const isArchived = a.status === "approved" || a.status === "rejected" || a.status === "executed";
             const matchesSearch = !historySearch || 
                 (a.payload?.issue_key || "").toLowerCase().includes(historySearch.toLowerCase()) ||
                 (a.summary || "").toLowerCase().includes(historySearch.toLowerCase());
@@ -194,7 +194,8 @@ export function JiraContent() {
     }, [approvals, historySearch]);
 
     const stats = useMemo(() => {
-        const approvedCount = approvals.filter(a => a.status === "approved").length;
+        // Count both 'approved' (pending move) and 'executed' (successfully moved)
+        const approvedCount = approvals.filter(a => a.status === "approved" || a.status === "executed").length;
         return {
             totalPending: pendingApprovals.length,
             approvedMoves: approvedCount,
