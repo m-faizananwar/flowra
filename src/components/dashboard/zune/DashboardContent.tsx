@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Loader2 } from "lucide-react";
 import { PageTransition, staggerContainer, staggerItem } from "@/components/animations/PageTransition";
+import { supabase } from "@/lib/supabase";
 import { TotalBalanceCard } from "./TotalBalanceCard";
 import { RecentTransactions } from "./RecentTransactions";
 import { SummaryCards } from "./SummaryCards";
@@ -15,11 +16,31 @@ import { PendingCommitments } from "./PendingCommitments";
 
 export function DashboardContent() {
     const [isLoading, setIsLoading] = useState(true);
+    const [overview, setOverview] = useState<any>(null);
 
     useEffect(() => {
-        // Simulate loading for that premium feel
-        const timer = setTimeout(() => setIsLoading(false), 800);
-        return () => clearTimeout(timer);
+        const loadOverview = async () => {
+            try {
+                const { data: { session } } = await supabase.auth.getSession();
+                const res = await fetch("/api/overview/data", {
+                    headers: session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {},
+                    cache: "no-store",
+                });
+
+                if (!res.ok) {
+                    throw new Error(`Failed to load overview data: ${res.status}`);
+                }
+                const payload = await res.json();
+                setOverview(payload);
+            } catch (err) {
+                console.error("[DashboardContent] overview fetch failed:", err);
+                setOverview(null);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        loadOverview();
     }, []);
 
     if (isLoading) {
@@ -49,12 +70,20 @@ export function DashboardContent() {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div className="lg:col-span-2">
                         <motion.div variants={staggerItem}>
-                            <TotalBalanceCard />
+                            <TotalBalanceCard
+                                sprintVelocity={overview?.kpis?.sprintVelocity}
+                                completed={overview?.kpis?.completed}
+                                inReview={overview?.kpis?.inReview}
+                                blocked={overview?.kpis?.blocked}
+                            />
                         </motion.div>
                     </div>
                     <div className="lg:col-span-1">
                         <motion.div variants={staggerItem} className="h-full">
-                            <SummaryCards />
+                            <SummaryCards
+                                totalSaved={overview?.kpis?.verifiedActions}
+                                totalSpent={overview?.kpis?.totalWorkload}
+                            />
                         </motion.div>
                     </div>
                 </div>
@@ -63,12 +92,12 @@ export function DashboardContent() {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div className="lg:col-span-2">
                         <motion.div variants={staggerItem}>
-                            <SpendingTrendChart />
+                            <SpendingTrendChart data={overview?.charts?.sprintTrend} />
                         </motion.div>
                     </div>
                     <div className="lg:col-span-1">
                         <motion.div variants={staggerItem} className="h-full">
-                            <CategoryBreakdownChart />
+                            <CategoryBreakdownChart data={overview?.charts?.categoryBreakdown} />
                         </motion.div>
                     </div>
                 </div>
@@ -77,13 +106,13 @@ export function DashboardContent() {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div className="lg:col-span-2">
                         <motion.div variants={staggerItem}>
-                            <ExpenseChart />
+                            <ExpenseChart data={overview?.charts?.performanceSeries} />
                         </motion.div>
                     </div>
 
                     <div className="lg:col-span-1">
                         <motion.div variants={staggerItem} className="h-full">
-                            <RecentTransactions />
+                            <RecentTransactions transactions={overview?.feeds?.recentActivity} />
                         </motion.div>
                     </div>
                 </div>
@@ -92,12 +121,12 @@ export function DashboardContent() {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div className="lg:col-span-2">
                         <motion.div variants={staggerItem}>
-                            <SpendingHeatmap />
+                            <SpendingHeatmap data={overview?.charts?.heatmap} />
                         </motion.div>
                     </div>
                     <div className="lg:col-span-1">
                         <motion.div variants={staggerItem} className="h-full">
-                            <PendingCommitments />
+                            <PendingCommitments commitmentsData={overview?.feeds?.pendingCommitments} />
                         </motion.div>
                     </div>
                 </div>
