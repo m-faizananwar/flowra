@@ -33,9 +33,6 @@ const MOCK_INTEGRATIONS = [
     { id: "discord", name: "Discord", category: "Communications", icon: "https://cdn.simpleicons.org/discord/5865F2", status: "not_connected", lastSync: "N/A", color: "text-indigo-400" },
     { id: "slack", name: "Slack Enterprise", category: "Communications", icon: "https://www.vectorlogo.zone/logos/slack/slack-icon.svg", status: "not_connected", lastSync: "N/A", color: "text-purple-400" },
     { id: "telegram", name: "Telegram", category: "Communications", icon: "https://cdn.simpleicons.org/telegram/26A69A", status: "not_connected", lastSync: "N/A", color: "text-sky-400" },
-    { id: "linear", name: "Linear", category: "Issue Tracking", icon: "https://cdn.simpleicons.org/linear/white", status: "not_connected", lastSync: "N/A", color: "text-indigo-400" },
-    { id: "vercel", name: "Vercel", category: "Deployment", icon: "https://cdn.simpleicons.org/vercel/white", status: "connected", lastSync: "1h ago", color: "text-white" },
-    { id: "notion", name: "Notion", category: "Documentation", icon: "https://cdn.simpleicons.org/notion/white", status: "not_connected", lastSync: "N/A", color: "text-rose-400" },
 ];
 
 export function IntegrationsContent() {
@@ -223,7 +220,7 @@ export function IntegrationsContent() {
                                                 "w-7 h-7 transition-all duration-500", 
                                                 isConnected ? "opacity-100" : "opacity-80 group-hover:opacity-100",
                                                 // Invert white logos only when the background turns white
-                                                ["github", "vercel", "notion", "linear"].includes(app.id) && (isConnected ? "invert" : "group-hover:invert")
+                                                ["github"].includes(app.id) && (isConnected ? "invert" : "group-hover:invert")
                                             )} 
                                         />
                                     </div>
