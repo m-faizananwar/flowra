@@ -56,10 +56,10 @@ const DEFAULT_SETTING = {
     risk_enabled: true,
 };
 
-function EvaluationRadar({ data }: { data: any[] }) {
+function EvaluationRadar({ data, heightClass = "h-44" }: { data: any[], heightClass?: string }) {
     if (!data || data.length < 3) return null;
     return (
-        <div className="h-44 w-full my-2">
+        <div className={cn("w-full my-2", heightClass)}>
             <ResponsiveContainer width="100%" height="100%">
                 <RadarChart cx="50%" cy="50%" outerRadius="75%" data={data}>
                     <PolarGrid stroke="rgba(255,255,255,0.05)" />
@@ -569,7 +569,7 @@ export function PerformanceContent() {
                     </motion.div>
 
                     {/* Member roster */}
-                    <motion.div variants={staggerItem} className="glass-panel rounded-[2.5rem] p-6 space-y-4 overflow-y-auto max-h-[380px] custom-scrollbar">
+                    <motion.div variants={staggerItem} className="glass-panel rounded-[2.5rem] p-6 space-y-4 overflow-y-auto max-h-[580px] custom-scrollbar">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
                                 <Users className="w-4 h-4 text-[#24FF7C]" />
@@ -579,23 +579,37 @@ export function PerformanceContent() {
                         </div>
                         {dedupedMembers.length === 0 ? (
                             <p className="text-sm text-white/20 py-4">No members in workspace.</p>
-                        ) : dedupedMembers.map((member) => {
-                            const latest = memberScoreMap[memberCanonicalKey(member)];
-                            const score = latest ? Number(latest.total_score) : null;
-                            const color = score === null ? "text-white/20" : score >= 75 ? "text-[#24FF7C]" : score >= 50 ? "text-[#F59E0B]" : "text-[#FF8A8A]";
-                            return (
-                                <div key={member.id} className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.02] border border-white/[0.04] hover:bg-white/[0.05] transition-all">
-                                    <div className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0 overflow-hidden">
-                                        {member.avatar_url ? <img src={member.avatar_url} alt="" className="w-full h-full object-cover" /> : <UserCircle className="w-5 h-5 text-white/20" />}
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <p className="text-sm font-black text-white truncate">{member.full_name || member.alias}</p>
-                                        <p className="text-[10px] text-white/30 uppercase tracking-widest truncate">{member.role || "No role"}</p>
-                                    </div>
-                                    <span className={cn("text-lg font-black flex-shrink-0", color)} style={{ fontFamily: "Outfit, sans-serif" }}>{score !== null ? score.toFixed(0) : "—"}</span>
-                                </div>
-                            );
-                        })}
+                        ) : (
+                            <div className="space-y-4">
+                                {dedupedMembers.map((member) => {
+                                    const latest = memberScoreMap[memberCanonicalKey(member)];
+                                    const score = latest ? Number(latest.total_score) : null;
+                                    const color = score === null ? "text-white/20" : score >= 75 ? "text-[#24FF7C]" : score >= 50 ? "text-[#F59E0B]" : "text-[#FF8A8A]";
+                                    return (
+                                        <div key={member.id} className="flex flex-col gap-3 p-4 rounded-2xl bg-white/[0.02] border border-white/[0.04] hover:bg-white/[0.05] transition-all">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                                                    {member.avatar_url ? <img src={member.avatar_url} alt="" className="w-full h-full object-cover" /> : <UserCircle className="w-5 h-5 text-white/20" />}
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-sm font-black text-white truncate">{member.full_name || member.alias}</p>
+                                                    <p className="text-[10px] text-white/30 uppercase tracking-widest truncate">{member.role || "No role"}</p>
+                                                </div>
+                                                <div className="flex flex-col items-end">
+                                                    <span className={cn("text-xl font-black leading-none", color)} style={{ fontFamily: "Outfit, sans-serif" }}>{score !== null ? score.toFixed(0) : "—"}</span>
+                                                    <span className="text-[8px] font-black text-white/20 uppercase tracking-widest mt-1">Score</span>
+                                                </div>
+                                            </div>
+                                            {latest?.metric_scores && latest.metric_scores.length >= 3 && (
+                                                <div className="pt-2 border-t border-white/[0.04] -mx-2 -mb-2">
+                                                    <EvaluationRadar data={latest.metric_scores.map((s: any) => ({ name: s.name, score: s.score }))} heightClass="h-32" />
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
                     </motion.div>
                 </div>
 

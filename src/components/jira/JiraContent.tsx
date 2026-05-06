@@ -38,6 +38,7 @@ export function JiraContent() {
     const [approvals, setApprovals] = useState<any[]>([]);
     const [jiraIssuesMap, setJiraIssuesMap] = useState<Record<string, any>>({});
     const [activeApproval, setActiveApproval] = useState<any | null>(null);
+    const [editedTargetStatus, setEditedTargetStatus] = useState("");
     const [historySearch, setHistorySearch] = useState("");
     const [settings, setSettings] = useState<any>(DEFAULT_SETTING);
     const [userId, setUserId] = useState<string | null>(null);
@@ -54,7 +55,7 @@ export function JiraContent() {
             setUserId(user.id);
 
             const [aRes, sRes, iRes] = await Promise.all([
-                supabase.from("approval_requests").select("*").eq("user_id", user.id).eq("request_type", "jira_transition").order("created_at", { ascending: false }),
+                supabase.from("approval_requests").select("*").eq("user_id", user.id).in("request_type", ["jira_transition", "jira_creation"]).order("created_at", { ascending: false }),
                 supabase.from("analysis_settings").select("*").eq("user_id", user.id).maybeSingle(),
                 supabase.from("jira_issues").select("issue_key,summary,description,status,priority,assignee_name").eq("user_id", user.id)
             ]);
@@ -131,6 +132,7 @@ export function JiraContent() {
 
     const approveJira = async (id: string) => {
         if (!activeApproval) return;
+        const finalStatus = editedTargetStatus || activeApproval.payload.target_status;
         setIsSaving(true);
         try {
             const { data: { session } } = await supabase.auth.getSession();
@@ -143,7 +145,7 @@ export function JiraContent() {
                 body: JSON.stringify({
                     user_id: userId,
                     issue_key: activeApproval.payload.issue_key,
-                    target_status: activeApproval.payload.target_status,
+                    target_status: finalStatus,
                     approval_id: id
                 })
             });
@@ -153,7 +155,7 @@ export function JiraContent() {
                 throw new Error(err.error || "Failed to execute Jira approval.");
             }
 
-            toast.success(`Successfully transitioned ${activeApproval.payload.issue_key} to ${activeApproval.payload.target_status}`);
+            toast.success(`Successfully transitioned ${activeApproval.payload.issue_key} to ${finalStatus}`);
             setActiveApproval(null);
             await loadData();
         } catch (e: any) {
@@ -182,7 +184,8 @@ export function JiraContent() {
         }
     };
 
-    const pendingApprovals = useMemo(() => approvals.filter(a => a.status === "pending"), [approvals]);
+    const pendingApprovals = useMemo(() => approvals.filter(a => a.status === "pending" && a.request_type === "jira_transition"), [approvals]);
+    const pendingCreations = useMemo(() => approvals.filter(a => a.status === "pending" && a.request_type === "jira_creation"), [approvals]);
     const archivedApprovals = useMemo(() => {
         return approvals.filter(a => {
             const isArchived = a.status === "approved" || a.status === "rejected" || a.status === "executed";
@@ -332,7 +335,7 @@ export function JiraContent() {
                             {pendingApprovals.map((req) => (
                                 <button 
                                     key={req.id} 
-                                    onClick={() => setActiveApproval(req)} 
+                                    onClick={() => { setActiveApproval(req); setEditedTargetStatus(req.payload.target_status); }} 
                                     className="group relative p-6 rounded-2xl bg-white/[0.02] border border-white/[0.06] hover:bg-white/[0.05] hover:border-[#3B82F6]/30 transition-all text-left overflow-hidden shadow-xl"
                                 >
                                     <div className="flex items-center justify-between gap-3 mb-4">
@@ -350,6 +353,38 @@ export function JiraContent() {
                                         <div className="w-7 h-7 rounded-lg bg-white/5 flex items-center justify-center">
                                             <ChevronRight className="w-4 h-4 text-white/20 group-hover:text-white transition-all" />
                                         </div>
+                                    </div>
+                                </button>
+                            ))}
+                        </div>
+                    </motion.div>
+                )}
+
+                {/* ── Suggested New Tasks ── */}
+                {pendingCreations.length > 0 && (
+                    <motion.div variants={staggerItem} className="glass-panel rounded-[2.5rem] p-10 space-y-8 relative overflow-hidden">
+                        <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+                                <Zap className="w-5 h-5 text-emerald-400" />
+                            </div>
+                            <div>
+                                <h3 className="text-base font-black text-white uppercase tracking-tight italic">Suggested New Tasks</h3>
+                                <p className="text-[10px] text-white/30 uppercase tracking-widest italic">{pendingCreations.length} new tasks detected from team activity</p>
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                            {pendingCreations.map((req) => (
+                                <button key={req.id} onClick={() => { setActiveApproval(req); setEditedTargetStatus(""); }}
+                                    className="group p-6 rounded-2xl bg-white/[0.02] border border-white/[0.06] hover:bg-emerald-500/5 hover:border-emerald-500/20 transition-all text-left">
+                                    <div className="flex items-center justify-between mb-3">
+                                        <span className="px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest border border-emerald-500/30 bg-emerald-500/10 text-emerald-400">{req.payload.issue_type || "Task"}</span>
+                                        <span className="text-[9px] font-black text-white/20 uppercase">{req.payload.priority}</span>
+                                    </div>
+                                    <p className="text-sm font-black text-white mb-2 line-clamp-2">{req.payload.summary}</p>
+                                    <p className="text-[11px] text-white/30 line-clamp-2 italic">{req.summary}</p>
+                                    <div className="mt-3 pt-3 border-t border-white/[0.04] flex items-center justify-between">
+                                        <span className="text-[9px] text-white/20 font-black uppercase">Confidence</span>
+                                        <span className="text-[11px] font-black text-emerald-400">{Math.round((req.payload.confidence || 0) * 100)}%</span>
                                     </div>
                                 </button>
                             ))}
@@ -384,15 +419,39 @@ export function JiraContent() {
                                 </div>
 
                                 <div className="flex-1 overflow-y-auto p-10 pt-8 space-y-10 custom-scrollbar">
-                                    <div className="flex items-center gap-6 justify-center">
-                                        <div className="px-6 py-3 rounded-2xl bg-white/5 border border-white/10 text-white/60 font-black italic uppercase tracking-widest text-sm">
-                                            Current
+                                    {/* Transition: editable status selector */}
+                                    {activeApproval.request_type === "jira_transition" && (
+                                        <div className="space-y-3">
+                                            <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] px-1 italic">Move To</p>
+                                            <div className="flex items-center gap-4">
+                                                <div className="px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white/50 font-black italic uppercase tracking-widest text-xs">
+                                                    {jiraIssuesMap[activeApproval.payload.issue_key]?.status || "Current"}
+                                                </div>
+                                                <ArrowRight className="w-5 h-5 text-[#3B82F6] shrink-0" />
+                                                <select
+                                                    value={editedTargetStatus}
+                                                    onChange={e => setEditedTargetStatus(e.target.value)}
+                                                    className="flex-1 h-11 rounded-xl bg-[#3B82F6]/10 border border-[#3B82F6]/40 text-[#3B82F6] font-black italic uppercase tracking-widest text-xs px-4 focus:outline-none focus:border-[#3B82F6] cursor-pointer"
+                                                >
+                                                    {["Backlog", "To Do", "In Progress", "In Review", "Done"].map(s => (
+                                                        <option key={s} value={s} className="bg-[#0C0D10] text-white normal-case not-italic tracking-normal">{s}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
                                         </div>
-                                        <ArrowRight className="w-6 h-6 text-[#3B82F6]" />
-                                        <div className="px-6 py-3 rounded-2xl bg-[#3B82F6]/10 border border-[#3B82F6]/30 text-[#3B82F6] font-black italic uppercase tracking-widest text-sm shadow-[0_0_15px_rgba(59,130,246,0.2)]">
-                                            {activeApproval.payload.target_status}
+                                    )}
+                                    {/* Creation: show task details */}
+                                    {activeApproval.request_type === "jira_creation" && (
+                                        <div className="p-6 rounded-2xl bg-emerald-500/5 border border-emerald-500/20 space-y-3">
+                                            <p className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">New Task Details</p>
+                                            <p className="text-base font-black text-white">{activeApproval.payload.summary}</p>
+                                            <div className="flex gap-3">
+                                                <span className="px-2.5 py-1 rounded-lg text-[10px] font-black uppercase border border-emerald-500/30 bg-emerald-500/10 text-emerald-400">{activeApproval.payload.issue_type}</span>
+                                                <span className="px-2.5 py-1 rounded-lg text-[10px] font-black uppercase border border-white/10 bg-white/5 text-white/40">{activeApproval.payload.priority}</span>
+                                            </div>
+                                            {activeApproval.payload.description && <p className="text-xs text-white/40 leading-relaxed">{activeApproval.payload.description}</p>}
                                         </div>
-                                    </div>
+                                    )}
 
                                     <div className="space-y-4">
                                         <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] px-1 italic">Engine Reasoning</p>
@@ -431,7 +490,7 @@ export function JiraContent() {
                                             disabled={isSaving}
                                             className="w-full py-4 rounded-2xl bg-gradient-to-r from-[#3B82F6] to-blue-400 text-white font-black italic tracking-widest uppercase flex justify-center items-center gap-2 hover:opacity-90 transition-opacity disabled:opacity-50 shadow-[0_10px_30px_rgba(59,130,246,0.3)]"
                                         >
-                                            {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : "Approve & Execute Movement"}
+                                            {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : activeApproval.request_type === "jira_creation" ? "Approve & Create Task" : `Approve & Move to ${editedTargetStatus}`}
                                         </button>
                                         <button 
                                             onClick={() => rejectJira(activeApproval.id)}
