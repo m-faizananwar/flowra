@@ -296,13 +296,41 @@ export function RiskContent() {
         })).filter((s) => s.value > 0);
     }, [riskAssessments]);
 
-    const radarData = [
-        { subject: 'Security', value: 85 },
-        { subject: 'Stability', value: 65 },
-        { subject: 'Performance', value: 45 },
-        { subject: 'Technical Debt', value: 90 },
-        { subject: 'Team Sync', value: 30 },
-    ];
+    const radarData = useMemo(() => {
+        const categories = ["project", "delivery", "quality", "security", "process"];
+        return categories.map(cat => {
+            const pendingCount = riskAssessments.filter(r => r.category === cat && r.status === "pending").length;
+            const value = Math.max(20, 100 - (pendingCount * 15));
+            return {
+                subject: cat.charAt(0).toUpperCase() + cat.slice(1),
+                value
+            };
+        });
+    }, [riskAssessments]);
+
+    const codebaseStats = useMemo(() => {
+        const pending = pendingRisks.length;
+        return [
+            { label: "Bug Density", value: (0.1 + (pending * 0.05)).toFixed(2), unit: "/kloc", icon: Bug, color: "text-amber-400", bg: "bg-amber-400/5", border: "border-amber-400/20" },
+            { label: "Technical Debt", value: 14 + (pending * 2), unit: "hrs", icon: Cpu, color: "text-purple-400", bg: "bg-purple-400/5", border: "border-purple-400/20" },
+            { label: "Error Frequency", value: (0.5 + (pending * 0.2)).toFixed(1), unit: "%", icon: Terminal, color: "text-blue-400", bg: "bg-blue-500/5", border: "border-blue-500/20" },
+        ];
+    }, [pendingRisks]);
+
+    const neuralVitals = useMemo(() => {
+        const critical = riskAssessments.filter(r => r.severity === 'critical' && r.status === 'pending').length;
+        const high = riskAssessments.filter(r => r.severity === 'high' && r.status === 'pending').length;
+        
+        const testCov = Math.max(40, 95 - (critical * 5) - (high * 2));
+        const buildStab = Math.max(30, 99 - (critical * 10));
+        const lintInt = Math.max(50, 90 - (pendingRisks.length * 2));
+
+        return [
+            { label: "Test Coverage", value: testCov, color: testCov > 80 ? "#24FF7C" : "#F59E0B", glow: testCov > 80 ? "shadow-[0_0_10px_rgba(36,255,124,0.3)]" : "shadow-[0_0_10px_rgba(245,158,11,0.3)]" },
+            { label: "Build Stability", value: buildStab, color: buildStab > 90 ? "#24FF7C" : "#FF8A8A", glow: buildStab > 90 ? "shadow-[0_0_10px_rgba(36,255,124,0.3)]" : "shadow-[0_0_10px_rgba(255,138,138,0.3)]" },
+            { label: "Lint Integrity", value: lintInt, color: lintInt > 75 ? "#24FF7C" : "#F59E0B", glow: lintInt > 75 ? "shadow-[0_0_10px_rgba(36,255,124,0.3)]" : "shadow-[0_0_10px_rgba(245,158,11,0.3)]" },
+        ];
+    }, [riskAssessments, pendingRisks]);
 
     if (isLoading) {
         return (
@@ -343,14 +371,14 @@ export function RiskContent() {
                                     {stats.critical}
                                 </span>
                                 <div className="flex flex-col mb-4">
-                                    <span className="text-2xl font-black text-[#FF8A8A] uppercase tracking-widest leading-none italic">High Priority</span>
+                                    <span className="text-2xl font-black text-[#FF8A8A] uppercase tracking-widest leading-none italic">Critical Priority</span>
                                     <span className="text-[11px] font-black text-white/20 uppercase tracking-[0.2em] mt-1 italic">Findings Detected</span>
                                 </div>
                             </div>
                             <p className="text-white/30 text-sm max-w-lg italic font-medium leading-relaxed">
                                 {stats.critical > 0 
-                                    ? `Neural Shield has identified ${stats.critical} high-priority findings. Strategic mitigation is required to maintain core codebase stability and security standards.`
-                                    : "Project stability is within nominal parameters. No high-priority findings detected in the current analysis cycle."}
+                                    ? `Neural Shield has identified ${stats.critical} critical findings. Strategic mitigation is immediately required to maintain core stability and security standards.`
+                                    : "Project stability is within nominal parameters. No critical findings detected in the current analysis cycle."}
                             </p>
                         </div>
                         <div className="relative z-10 mt-8 pt-8 border-t border-white/[0.05] flex flex-wrap gap-10">
@@ -510,11 +538,7 @@ export function RiskContent() {
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                {[
-                                    { label: "Bug Density", value: "0.24", unit: "/kloc", icon: Bug, color: "text-amber-400", bg: "bg-amber-400/5", border: "border-amber-400/20" },
-                                    { label: "Technical Debt", value: "14", unit: "hrs", icon: Cpu, color: "text-purple-400", bg: "bg-purple-400/5", border: "border-purple-400/20" },
-                                    { label: "Error Frequency", value: "1.2", unit: "%", icon: Terminal, color: "text-blue-400", bg: "bg-blue-500/5", border: "border-blue-500/20" },
-                                ].map((stat, i) => (
+                                {codebaseStats.map((stat, i) => (
                                     <div key={i} className={cn("p-7 rounded-[2.5rem] border hover:brightness-125 transition-all group relative overflow-hidden", stat.bg, stat.border)}>
                                         <stat.icon className={cn("w-6 h-6 mb-5", stat.color)} />
                                         <div className="flex items-end gap-2.5">
@@ -535,11 +559,7 @@ export function RiskContent() {
                                 <h3 className="text-xl font-black text-white uppercase tracking-tight italic">Neural Vitals</h3>
                             </div>
                             <div className="space-y-8">
-                                {[
-                                    { label: "Test Coverage", value: 88, color: "#24FF7C", glow: "shadow-[0_0_10px_rgba(36,255,124,0.3)]" },
-                                    { label: "Build Stability", value: 96, color: "#24FF7C", glow: "shadow-[0_0_10px_rgba(36,255,124,0.3)]" },
-                                    { label: "Lint Integrity", value: 72, color: "#F59E0B", glow: "shadow-[0_0_10px_rgba(245,158,11,0.3)]" },
-                                ].map((vital, i) => (
+                                {neuralVitals.map((vital, i) => (
                                     <div key={i} className="space-y-3">
                                         <div className="flex items-center justify-between px-1">
                                             <span className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] italic">{vital.label}</span>

@@ -14,6 +14,7 @@ import {
     Trash2
 } from "lucide-react";
 import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
@@ -43,6 +44,21 @@ export function IntegrationsContent() {
     const [deletingIntegration, setDeletingIntegration] = useState<any | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
     const [activeMenu, setActiveMenu] = useState<string | null>(null);
+
+    const router = useRouter();
+    const searchParams = useSearchParams();
+
+    useEffect(() => {
+        const installationId = searchParams?.get('installation_id');
+        const setupAction = searchParams?.get('setup_action');
+        
+        if (installationId && setupAction === 'install') {
+            // The user was redirected here by GitHub instead of the API route.
+            // Redirect them to the proper API route so the backend can process it.
+            // We need to pass the state if possible, but the API route will fallback to the cookie.
+            router.replace(`/api/auth/callback/github?installation_id=${installationId}&setup_action=${setupAction}`);
+        }
+    }, [searchParams, router]);
 
     const fetchIntegrations = async () => {
         try {

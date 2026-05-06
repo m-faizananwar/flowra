@@ -5,6 +5,7 @@ import {
     AlertCircle,
     CheckCircle2,
     ChevronDown,
+    ChevronRight,
     Clock,
     History,
     Loader2,
@@ -14,24 +15,29 @@ import {
     Search,
     SlidersHorizontal,
     Sparkles,
+    TrendingDown,
+    TrendingUp,
     Trophy,
     UserCircle,
     Users,
     X,
     Zap,
+    CheckCheck,
+    Trash2,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import {
+    ResponsiveContainer,
     Radar,
     RadarChart,
     PolarGrid,
     PolarAngleAxis,
     PolarRadiusAxis,
-    ResponsiveContainer,
-    Bar,
-    BarChart,
+    Line,
+    LineChart,
+    Area,
+    AreaChart,
     CartesianGrid,
-    Cell,
     Tooltip,
     XAxis,
     YAxis
@@ -167,16 +173,21 @@ export function PerformanceContent() {
     const approvedEvaluations = useMemo(() => {
         const approved = evaluations.filter((e) => e.status === "approved");
         const now = new Date();
+        now.setHours(23, 59, 59, 999);
         return approved.filter((e) => {
             const matchSearch = !historySearch ||
                 (e.members?.full_name || "").toLowerCase().includes(historySearch.toLowerCase()) ||
+                (e.members?.alias || "").toLowerCase().includes(historySearch.toLowerCase()) ||
                 (e.summary || "").toLowerCase().includes(historySearch.toLowerCase());
             if (!matchSearch) return false;
             if (historyDateFilter === "all") return true;
-            const d = new Date(e.created_at);
+            
+            const d = new Date(e.evaluation_date || e.created_at);
+            const diffDays = Math.floor((now.getTime() - d.getTime()) / 86400000);
+            
             if (historyDateFilter === "today") return d.toDateString() === now.toDateString();
-            if (historyDateFilter === "week") return now.getTime() - d.getTime() < 7 * 86400000;
-            if (historyDateFilter === "month") return now.getTime() - d.getTime() < 30 * 86400000;
+            if (historyDateFilter === "week") return diffDays <= 7;
+            if (historyDateFilter === "month") return diffDays <= 30;
             return true;
         });
     }, [evaluations, historySearch, historyDateFilter]);
@@ -191,20 +202,43 @@ export function PerformanceContent() {
         const map: Record<string, any> = {};
         for (const e of approvedEvaluations) {
             const key = memberCanonicalKey(e.members || { id: e.member_id });
-            if (key && (!map[key] || new Date(e.created_at) > new Date(map[key].created_at))) {
+            if (key && (!map[key] || new Date(e.evaluation_date || e.created_at) > new Date(map[key].evaluation_date || map[key].created_at))) {
                 map[key] = e;
             }
         }
         return map;
     }, [approvedEvaluations]);
 
-    const chartData = useMemo(() =>
-        dedupedMembers.map((m) => ({
-            name: (m.full_name || m.alias || "?").split(" ")[0],
-            score: Number(memberScoreMap[memberCanonicalKey(m)]?.total_score || 0),
-            role: m.role || "—",
-        })),
-        [dedupedMembers, memberScoreMap]);
+    // Enhanced Line Chart Data: Groups all approved evaluations by date
+    const lineChartData = useMemo(() => {
+        const approved = evaluations.filter((e) => e.status === "approved");
+        const dates = Array.from(new Set(approved.map(e => e.evaluation_date || new Date(e.created_at).toISOString().split('T')[0]))).sort();
+        
+        return dates.map(date => {
+            const entry: any = { date: new Date(date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) };
+            dedupedMembers.forEach(m => {
+                const key = memberCanonicalKey(m);
+                const evalsOnDate = approved.filter(e => 
+                    (e.evaluation_date || new Date(e.created_at).toISOString().split('T')[0]) === date && 
+                    memberCanonicalKey(e.members || { id: e.member_id }) === key
+                );
+                if (evalsOnDate.length > 0) {
+                    entry[key] = Number(evalsOnDate[0].total_score);
+                    entry[`${key}_name`] = m.full_name || m.alias;
+                }
+            });
+            return entry;
+        });
+    }, [evaluations, dedupedMembers]);
+
+    const memberColors = useMemo(() => {
+        const colors = ["#24FF7C", "#8B5CF6", "#F59E0B", "#3B82F6", "#EC4899", "#10B981", "#6366F1"];
+        const map: Record<string, string> = {};
+        dedupedMembers.forEach((m, i) => {
+            map[memberCanonicalKey(m)] = colors[i % colors.length];
+        });
+        return map;
+    }, [dedupedMembers]);
 
     useEffect(() => { loadData(); }, []);
     useEffect(() => { if (activeEvaluation) setDraftScores(activeEvaluation.metric_scores || []); }, [activeEvaluation]);
@@ -288,6 +322,74 @@ export function PerformanceContent() {
             await loadData();
         } catch (e: any) { toast.error(e.message); }
     };
+
+    const approveAllPending = async () => {
+        if (pendingEvaluations.length === 0) return;
+        
+        const confirm = window.confirm(`Are you sure you want to approve all ${pendingEvaluations.length} pending evaluations?`);
+        if (!confirm) return;
+
+        try {
+            const now = new Date().toISOString();
+            const pendingIds = pendingEvaluations.map(e => e.id);
+            
+            const { error } = await supabase
+                .from("member_evaluations")
+                .update({ 
+                    status: 'approved', 
+                    approved_at: now, 
+                    approved_by: userId,
+                    updated_at: now
+                })
+                .in('id', pendingIds);
+
+            if (error) throw error;
+            
+            toast.success(`Successfully approved ${pendingIds.length} evaluations`);
+            await loadData();
+        } catch (error) {
+            console.error("Error approving all:", error);
+            toast.error("Failed to approve all evaluations");
+        }
+    };
+
+    const deleteEvaluation = async (id: string) => {
+        try {
+            const { error } = await supabase.from("member_evaluations").delete().eq("id", id);
+            if (error) throw error;
+            toast.success("Evaluation deleted.");
+            await loadData();
+        } catch (e: any) {
+            toast.error(e.message);
+        }
+    };
+
+    // Group approved evaluations by member for the reports section
+    const memberGroupedReports = useMemo(() => {
+        const groups: Record<string, any[]> = {};
+        approvedEvaluations.forEach(e => {
+            const key = memberCanonicalKey(e.members || { id: e.member_id });
+            if (!groups[key]) groups[key] = [];
+            groups[key].push(e);
+        });
+        return Object.entries(groups).map(([key, reports]) => {
+            const sorted = reports.sort((a, b) => new Date(b.evaluation_date || b.created_at).getTime() - new Date(a.evaluation_date || a.created_at).getTime());
+            const current = Number(sorted[0].total_score);
+            const previous = sorted.length > 1 ? Number(sorted[1].total_score) : current;
+            const trend = current > previous ? "up" : current < previous ? "down" : "stable";
+            
+            return {
+                key,
+                member: sorted[0].members || { id: sorted[0].member_id },
+                reports: sorted,
+                avgScore: Math.round(reports.reduce((s, r) => s + Number(r.total_score), 0) / reports.length),
+                trend,
+                trendValue: Math.abs(current - previous)
+            };
+        }).sort((a, b) => b.avgScore - a.avgScore);
+    }, [approvedEvaluations]);
+
+    const [expandedMemberKey, setExpandedMemberKey] = useState<string | null>(null);
 
     if (isLoading) return (
         <div className="h-[calc(100vh-200px)] flex flex-col items-center justify-center gap-6">
@@ -386,60 +488,83 @@ export function PerformanceContent() {
                 {/* ── Row 2: Member Score Chart ── */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <motion.div variants={staggerItem} className="lg:col-span-2 glass-panel rounded-[2.5rem] p-8">
-                        <div className="flex items-center justify-between mb-6">
-                            <h3 className="text-xl font-black text-white tracking-tight italic" style={{ fontFamily: "Outfit, sans-serif" }}>
-                                Team Scores.
-                            </h3>
+                        <div className="flex items-center justify-between mb-8">
+                            <div>
+                                <h3 className="text-xl font-black text-white tracking-tight italic" style={{ fontFamily: "Outfit, sans-serif" }}>
+                                    Team Performance.
+                                </h3>
+                                <p className="text-[10px] text-white/20 uppercase tracking-[0.2em] mt-1 font-black">Daily Intelligence Velocity</p>
+                            </div>
                             <div className="flex items-center gap-4">
-                                <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-[#24FF7C]" /><span className="text-[10px] font-black text-white/30 uppercase tracking-wider">75+</span></div>
-                                <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-[#F59E0B]" /><span className="text-[10px] font-black text-white/30 uppercase tracking-wider">50–74</span></div>
-                                <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-[#FF8A8A]" /><span className="text-[10px] font-black text-white/30 uppercase tracking-wider">&lt;50</span></div>
+                                {dedupedMembers.slice(0, 3).map(m => (
+                                    <div key={m.id} className="flex items-center gap-2">
+                                        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: memberColors[memberCanonicalKey(m)] }} />
+                                        <span className="text-[9px] font-black text-white/30 uppercase tracking-wider italic">{m.full_name || m.alias}</span>
+                                    </div>
+                                ))}
+                                {dedupedMembers.length > 3 && <span className="text-[9px] font-black text-white/20 uppercase">+{dedupedMembers.length - 3} More</span>}
                             </div>
                         </div>
-                        {chartData.length === 0 ? (
-                            <div className="h-48 flex items-center justify-center text-white/20 text-sm">No members yet.</div>
+                        {lineChartData.length === 0 ? (
+                            <div className="h-48 flex items-center justify-center text-white/20 text-sm italic uppercase tracking-widest">Awaiting synchronization...</div>
                         ) : (
-                            <ResponsiveContainer width="100%" height={220}>
-                                <BarChart data={chartData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
-                                    <CartesianGrid vertical={false} stroke="rgba(255,255,255,0.03)" strokeDasharray="4 4" />
-                                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 11, fontWeight: 900, letterSpacing: "0.05em", fontFamily: "Outfit, sans-serif" }} dy={10} />
-                                    <YAxis hide domain={[0, 100]} />
-                                    <Tooltip 
-                                        cursor={{ fill: "rgba(255,255,255,0.03)" }} 
-                                        contentStyle={{ 
-                                            backgroundColor: "rgba(23, 24, 28, 0.95)", 
-                                            backdropFilter: "blur(12px)",
-                                            border: "1px solid rgba(255,255,255,0.1)", 
-                                            borderRadius: "1.25rem", 
-                                            padding: "1rem", 
-                                            boxShadow: "0 10px 30px -10px rgba(0,0,0,0.5)"
-                                        }} 
-                                        itemStyle={{
-                                            color: "#24FF7C",
-                                            fontSize: "14px",
-                                            fontWeight: "900",
-                                            fontFamily: "Outfit, sans-serif",
-                                            textTransform: "uppercase",
-                                            letterSpacing: "0.05em"
-                                        }}
-                                        labelStyle={{
-                                            color: "rgba(255,255,255,0.4)",
-                                            fontSize: "10px",
-                                            fontWeight: "900",
-                                            fontFamily: "Outfit, sans-serif",
-                                            textTransform: "uppercase",
-                                            letterSpacing: "0.2em",
-                                            marginBottom: "0.5rem"
-                                        }}
-                                        formatter={(v: any) => [`${v}/100`, "Intelligence Score"]} 
-                                    />
-                                    <Bar dataKey="score" radius={[10, 10, 0, 0]} barSize={38} isAnimationActive>
-                                        {chartData.map((entry, i) => (
-                                            <Cell key={i} fill={entry.score >= 75 ? "#24FF7C" : entry.score >= 50 ? "#F59E0B" : entry.score > 0 ? "#FF8A8A" : "rgba(255,255,255,0.08)"} />
-                                        ))}
-                                    </Bar>
-                                </BarChart>
-                            </ResponsiveContainer>
+                            <div className="h-[260px] w-full">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <LineChart data={lineChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                                        <CartesianGrid vertical={false} stroke="rgba(255,255,255,0.03)" strokeDasharray="4 4" />
+                                        <XAxis 
+                                            dataKey="date" 
+                                            axisLine={false} 
+                                            tickLine={false} 
+                                            tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 10, fontWeight: 900, letterSpacing: "0.05em", fontFamily: "Outfit, sans-serif" }} 
+                                            dy={10} 
+                                        />
+                                        <YAxis 
+                                            hide 
+                                            domain={[0, 100]} 
+                                        />
+                                        <Tooltip 
+                                            content={({ active, payload, label }) => {
+                                                if (active && payload && payload.length) {
+                                                    return (
+                                                        <div className="glass-panel p-4 rounded-2xl border-white/10 shadow-2xl min-w-[180px]">
+                                                            <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.2em] mb-3 pb-2 border-b border-white/5">{label}</p>
+                                                            <div className="space-y-2.5">
+                                                                {payload.map((entry: any, index: number) => (
+                                                                    <div key={index} className="flex items-center justify-between gap-4">
+                                                                        <div className="flex items-center gap-2">
+                                                                            <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: entry.color }} />
+                                                                            <span className="text-[11px] font-black text-white italic truncate max-w-[100px]">{entry.payload[`${entry.dataKey}_name`]}</span>
+                                                                        </div>
+                                                                        <span className="text-[13px] font-black text-white" style={{ fontFamily: "Outfit, sans-serif", color: entry.color }}>{entry.value}</span>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                }
+                                                return null;
+                                            }}
+                                        />
+                                        {dedupedMembers.map((m) => {
+                                            const key = memberCanonicalKey(m);
+                                            return (
+                                                <Line 
+                                                    key={key}
+                                                    type="monotone"
+                                                    dataKey={key}
+                                                    stroke={memberColors[key]}
+                                                    strokeWidth={3}
+                                                    dot={{ r: 4, fill: memberColors[key], strokeWidth: 2, stroke: "#0F0F12" }}
+                                                    activeDot={{ r: 6, strokeWidth: 0, shadow: "0 0 15px rgba(36,255,124,0.5)" }}
+                                                    connectNulls
+                                                    animationDuration={1500}
+                                                />
+                                            );
+                                        })}
+                                    </LineChart>
+                                </ResponsiveContainer>
+                            </div>
                         )}
                     </motion.div>
 
@@ -487,16 +612,33 @@ export function PerformanceContent() {
                                     <p className="text-[10px] text-white/30 uppercase tracking-widest">{dedupedPendingEvaluations.length} items require your attention</p>
                                 </div>
                             </div>
+
+                            <button 
+                                onClick={approveAllPending}
+                                className="h-9 px-4 rounded-xl bg-[#24FF7C]/10 border border-[#24FF7C]/20 text-[#24FF7C] text-[10px] font-black uppercase tracking-widest hover:bg-[#24FF7C] hover:text-black hover:border-transparent transition-all duration-300 flex items-center gap-2 group/all"
+                            >
+                                <CheckCheck className="w-3.5 h-3.5 group-hover/all:scale-110 transition-transform" />
+                                Approve All
+                            </button>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                             {dedupedPendingEvaluations.map((item) => (
-                                <button 
+                                <div 
                                     key={item.id} 
                                     onClick={() => setActiveEvaluation(item)} 
-                                    className="group relative p-5 rounded-2xl bg-white/[0.02] border border-white/[0.06] hover:bg-[#24FF7C]/[0.04] hover:border-[#24FF7C]/20 transition-all text-left overflow-hidden"
+                                    className="group relative p-5 rounded-2xl bg-white/[0.02] border border-white/[0.06] hover:bg-[#24FF7C]/[0.04] hover:border-[#24FF7C]/20 transition-all text-left overflow-hidden cursor-pointer"
                                 >
-                                    <div className="absolute top-0 right-0 p-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <div className="absolute top-0 right-0 p-3 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2">
+                                        <button 
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                deleteEvaluation(item.id);
+                                            }}
+                                            className="w-8 h-8 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center"
+                                        >
+                                            <Trash2 className="w-3.5 h-3.5" />
+                                        </button>
                                         <Zap className="w-4 h-4 text-[#24FF7C]" />
                                     </div>
                                     <div className="flex items-center justify-between gap-3 mb-3">
@@ -514,7 +656,7 @@ export function PerformanceContent() {
                                     </div>
                                     <p className="text-sm font-black text-white truncate">{item.members?.full_name || item.members?.alias}</p>
                                     <p className="text-[10px] text-white/30 uppercase tracking-widest truncate mt-1">{item.members?.role || "No role"}</p>
-                                </button>
+                                </div>
                             ))}
                         </div>
                     </motion.div>
@@ -639,8 +781,14 @@ export function PerformanceContent() {
                                 </div>
 
                                 <div className="p-8 pt-4 border-t border-white/5 bg-[#0F0F12]/80 backdrop-blur-xl grid grid-cols-2 gap-4">
-                                    <button onClick={() => saveEvaluationDraft("pending")} className="h-14 rounded-2xl bg-white/[0.05] border border-white/10 hover:bg-white/[0.08] text-white text-[11px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all">
-                                        <Save className="w-4 h-4" /> Save
+                                    <button 
+                                        onClick={() => {
+                                            deleteEvaluation(activeEvaluation.id);
+                                            setActiveEvaluation(null);
+                                        }} 
+                                        className="h-14 rounded-2xl bg-red-500/10 border border-red-500/20 hover:bg-red-500 hover:text-white text-red-500 text-[11px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all"
+                                    >
+                                        <Trash2 className="w-4 h-4" /> Delete
                                     </button>
                                     <button onClick={() => saveEvaluationDraft("approved")} className="h-14 rounded-2xl bg-[#24FF7C] text-black text-[11px] font-black uppercase tracking-widest flex items-center justify-center gap-2 shadow-[0_10px_30px_rgba(36,255,124,0.3)] hover:scale-[1.02] transition-all">
                                         <CheckCircle2 className="w-4 h-4" /> Approve
@@ -763,55 +911,188 @@ export function PerformanceContent() {
                     )}
                 </motion.div>
 
-                {/* ── Row 5: Approved History ── */}
-                <motion.div variants={staggerItem} className="glass-panel rounded-[2.5rem] p-8 space-y-6">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                        <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-xl bg-[#24FF7C]/10 border border-[#24FF7C]/20 flex items-center justify-center">
-                                <History className="w-5 h-5 text-[#24FF7C]" />
+                {/* ── Row 5: Premium Member-Centric Approved History ── */}
+                <motion.div variants={staggerItem} className="glass-panel rounded-[3rem] p-10 space-y-10 border-white/10 shadow-[0_40px_100px_-30px_rgba(0,0,0,0.6)] relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#24FF7C]/[0.02] rounded-full blur-[120px] pointer-events-none" />
+                    
+                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 relative z-10">
+                        <div className="flex items-center gap-5">
+                            <div className="w-14 h-14 rounded-[1.5rem] bg-gradient-to-br from-[#24FF7C]/20 to-transparent border border-[#24FF7C]/30 flex items-center justify-center shadow-[0_0_40px_rgba(36,255,124,0.15)] group">
+                                <History className="w-7 h-7 text-[#24FF7C] group-hover:rotate-[-10deg] transition-transform" />
                             </div>
                             <div>
-                                <h3 className="text-base font-black text-white">Approved Reports</h3>
-                                <p className="text-[10px] text-white/30 uppercase tracking-widest">{approvedEvaluations.length} records</p>
+                                <div className="flex items-center gap-2 mb-1">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-[#24FF7C] animate-pulse" />
+                                    <h3 className="text-base font-black text-white">Evaluation History</h3>
+                                </div>
+                                <p className="text-[11px] text-white/30 uppercase tracking-[0.4em] font-black leading-none">Aggregated performance telemetry for {memberGroupedReports.length} actives</p>
                             </div>
                         </div>
-                        <div className="flex items-center gap-3 flex-wrap">
-                            <div className="relative">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/20" />
-                                <input type="text" placeholder="Search member..." value={historySearch} onChange={(e) => setHistorySearch(e.target.value)} className="h-9 pl-9 pr-8 rounded-xl bg-black/30 border border-white/10 text-sm text-white w-48 focus:outline-none placeholder:text-white/20" />
-                                {historySearch && <button onClick={() => setHistorySearch("")} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-white/20 hover:text-white"><X className="w-3.5 h-3.5" /></button>}
+                        
+                        <div className="flex items-center gap-4 flex-wrap">
+                            <div className="relative group">
+                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-focus-within:text-[#24FF7C] transition-colors" />
+                                <input 
+                                    type="text" 
+                                    placeholder="Search history..." 
+                                    value={historySearch} 
+                                    onChange={(e) => setHistorySearch(e.target.value)} 
+                                    className="h-12 pl-12 pr-10 rounded-2xl bg-white/[0.03] border border-white/10 text-sm text-white w-64 focus:outline-none focus:border-[#24FF7C]/40 focus:bg-white/[0.05] transition-all placeholder:text-white/10 italic font-medium" 
+                                />
+                                {historySearch && <button onClick={() => setHistorySearch("")} className="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 hover:text-white transition-colors"><X className="w-4 h-4" /></button>}
                             </div>
-                            <div className="flex items-center bg-black/30 rounded-xl border border-white/10 p-1 gap-0.5">
+                            <div className="flex items-center bg-white/[0.02] rounded-2xl border border-white/5 p-1.5 gap-1 shadow-inner backdrop-blur-md">
                                 {(["all", "today", "week", "month"] as const).map((f) => (
-                                    <button key={f} onClick={() => setHistoryDateFilter(f)} className={cn("px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all", historyDateFilter === f ? "bg-white text-black" : "text-white/30 hover:text-white")}>{f}</button>
+                                    <button 
+                                        key={f} 
+                                        onClick={() => setHistoryDateFilter(f)} 
+                                        className={cn(
+                                            "px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300", 
+                                            historyDateFilter === f ? "bg-white text-black shadow-[0_10px_20px_rgba(255,255,255,0.1)] scale-[1.02]" : "text-white/20 hover:text-white/50 hover:bg-white/[0.02]"
+                                        )}
+                                    >
+                                        {f}
+                                    </button>
                                 ))}
                             </div>
                         </div>
                     </div>
-                    {approvedEvaluations.length === 0 ? (
-                        <p className="text-sm text-white/20 text-center py-8">No approved evaluations match your filters.</p>
-                    ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                            {approvedEvaluations.map((item) => (
-                                <div key={item.id} className="p-5 rounded-2xl bg-white/[0.03] border border-white/[0.06] space-y-3">
-                                    <div className="flex items-center justify-between">
-                                        <div>
-                                            <p className="text-sm font-black text-white">{item.members?.full_name || item.members?.alias || "Member"}</p>
-                                            <p className="text-[10px] text-white/30 uppercase tracking-widest">{item.members?.role || "No role"}</p>
+
+                    <div className="flex flex-col gap-3 relative z-10">
+                        {memberGroupedReports.length > 0 ? (
+                            memberGroupedReports.map(({ key, member, reports, avgScore }) => (
+                                <div key={key} className="glass-panel rounded-[1.5rem] border-white/5 overflow-hidden transition-all duration-500">
+                                    <div 
+                                        onClick={() => setExpandedMemberKey(expandedMemberKey === key ? null : key)}
+                                        className="p-5 flex items-center justify-between cursor-pointer hover:bg-white/[0.02] transition-colors"
+                                    >
+                                        <div className="flex items-center gap-4">
+                                            <div className="relative">
+                                                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-white/10 to-transparent p-[1px]">
+                                                    <div className="w-full h-full rounded-2xl bg-[#090909] flex items-center justify-center overflow-hidden">
+                                                        {member.avatar_url ? (
+                                                            <img src={member.avatar_url} alt="" className="w-full h-full object-cover" />
+                                                        ) : (
+                                                            <UserCircle className="w-5 h-5 text-white/20" />
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <h4 className="text-sm font-black text-white italic tracking-tight">{member.full_name || member.alias}</h4>
+                                                <p className="text-[9px] font-black text-white/20 uppercase tracking-[0.2em] mt-0.5">{member.role || 'Contributor'}</p>
+                                            </div>
                                         </div>
-                                        <div className="text-right">
-                                            <p className="text-2xl font-black text-[#24FF7C]" style={{ fontFamily: "Outfit, sans-serif" }}>{Number(item.total_score).toFixed(0)}</p>
-                                            <p className="text-[10px] text-white/20">/100</p>
+
+                                        <div className="flex items-center gap-8">
+                                            <div className="text-right">
+                                                <div className="flex items-baseline gap-1.5 justify-end">
+                                                    <span className={cn("text-2xl font-black tracking-tighter", avgScore >= 75 ? "text-[#24FF7C]" : avgScore >= 50 ? "text-[#F59E0B]" : "text-[#FF8A8A]")}>{avgScore}</span>
+                                                    <span className="text-[10px] font-black text-white/10 uppercase">/100</span>
+                                                </div>
+                                                <p className="text-[8px] font-black text-white/20 uppercase tracking-widest mt-0.5">Average Score</p>
+                                            </div>
+                                            
+                                            <div className={cn(
+                                                "w-10 h-10 rounded-xl border flex items-center justify-center transition-all duration-500",
+                                                expandedMemberKey === key ? "bg-[#24FF7C] border-transparent text-black" : "bg-white/[0.03] border-white/10 text-white/40"
+                                            )}>
+                                                <ChevronRight className={cn("w-6 h-6 transition-all duration-500", expandedMemberKey === key ? "text-[#24FF7C] scale-110" : "text-white/20")} />
+                                            </div>
                                         </div>
                                     </div>
-                                    <div className="h-1.5 rounded-full bg-white/5 overflow-hidden">
-                                        <div className="h-full rounded-full" style={{ width: `${item.total_score}%`, background: item.total_score >= 75 ? "#24FF7C" : item.total_score >= 50 ? "#F59E0B" : "#FF8A8A" }} />
-                                    </div>
-                                    <p className="text-[10px] text-white/20">{new Date(item.created_at).toLocaleDateString()}</p>
+
+                                    <AnimatePresence>
+                                        {expandedMemberKey === key && (
+                                            <motion.div 
+                                                initial={{ height: 0, opacity: 0 }}
+                                                animate={{ height: "auto", opacity: 1 }}
+                                                exit={{ height: 0, opacity: 0 }}
+                                                transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+                                            >
+                                                <div className="px-8 pb-10">
+                                                    <div className="bg-black/20 rounded-[2rem] border border-white/5 overflow-hidden backdrop-blur-3xl shadow-inner">
+                                                        <div className="grid grid-cols-5 px-8 py-5 border-b border-white/5 bg-white/[0.02] text-[10px] font-black text-white/30 uppercase tracking-[0.3em]">
+                                                            <div className="col-span-2">Evaluation Reference / Date</div>
+                                                            <div className="text-center">Daily Score</div>
+
+                                                            <div className="text-center">Verification</div>
+                                                            <div className="text-right">Intelligence</div>
+                                                        </div>
+                                                        
+                                                        <div className="divide-y divide-white/[0.03]">
+                                                            {reports.map((report) => {
+                                                                
+                                                                return (
+                                                                    <div key={report.id} className="group/item grid grid-cols-5 items-center px-8 py-6 hover:bg-white/[0.03] transition-all duration-500 relative">
+                                                                        <div className="col-span-2 flex items-center gap-5">
+                                                                            <div className="w-10 h-10 rounded-xl bg-white/[0.03] border border-white/10 flex items-center justify-center shrink-0 group-hover/item:border-[#24FF7C]/40 transition-colors">
+                                                                                <Sparkles className="w-4 h-4 text-[#24FF7C]/30 group-hover/item:text-[#24FF7C] transition-colors" />
+                                                                            </div>
+                                                                            <div>
+                                                                                <p className="text-sm font-black text-white italic group-hover/item:translate-x-1 transition-transform duration-500">
+                                                                                    {new Date(report.evaluation_date || report.created_at).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}
+                                                                                </p>
+                                                                                <div className="flex items-center gap-2 mt-1">
+                                                                                    <div className="w-1.5 h-1.5 rounded-full bg-[#24FF7C]/40" />
+                                                                                    <p className="text-[9px] font-black text-white/30 uppercase tracking-widest">ID: {report.id.slice(0, 8)}</p>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                        
+                                                                        <div className="flex flex-col items-center">
+                                                                            <div className="relative">
+                                                                                <span className={cn("text-2xl font-black", Number(report.total_score) >= 75 ? "text-[#24FF7C]" : Number(report.total_score) >= 50 ? "text-[#F59E0B]" : "text-[#FF8A8A]")} style={{ fontFamily: "Inter, sans-serif" }}>
+                                                                                    {Number(report.total_score).toFixed(0)}
+                                                                                </span>
+                                                                                <span className="absolute -top-1 -right-4 text-[8px] font-black text-white/10 uppercase">Pts</span>
+                                                                            </div>
+                                                                        </div>
+                                                                        
+
+                                                                        
+                                                                        <div className="flex flex-col items-center">
+                                                                            <p className="text-[10px] font-black text-white italic">{report.approved_at ? new Date(report.approved_at).toLocaleDateString() : "—"}</p>
+                                                                            <p className="text-[8px] font-black text-white/20 uppercase tracking-tighter mt-1">{report.approved_at ? new Date(report.approved_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "AUTO_SYNC"}</p>
+                                                                        </div>
+                                                                        
+                                                                        <div className="flex justify-end gap-2">
+                                                                            <button 
+                                                                                onClick={(e) => {
+                                                                                    e.stopPropagation();
+                                                                                    deleteEvaluation(report.id);
+                                                                                }}
+                                                                                className="h-10 w-10 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center border border-red-500/20"
+                                                                            >
+                                                                                <Trash2 className="w-4 h-4" />
+                                                                            </button>
+                                                                            <button 
+                                                                                onClick={() => setActiveEvaluation(report)}
+                                                                                className="group/btn h-10 px-6 rounded-xl bg-white/[0.03] border border-white/10 hover:bg-[#24FF7C] hover:text-black hover:border-transparent text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-500 flex items-center gap-2 overflow-hidden"
+                                                                            >
+                                                                                <Zap className="w-3.5 h-3.5 group-hover/btn:scale-125 transition-transform" />
+                                                                                <span className="relative z-10">Inspect</span>
+                                                                            </button>
+                                                                        </div>
+                                                                    </div>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
                                 </div>
-                            ))}
-                        </div>
-                    )}
+                            ))
+                        ) : (
+                            <div className="glass-panel rounded-[2.5rem] p-20 flex flex-col items-center justify-center text-center border-dashed border-white/10">
+                                <History className="w-12 h-12 text-white/5 mb-6" />
+                                <h4 className="text-xl font-black text-white italic mb-2">No History Yet</h4>
+                                <p className="text-sm text-white/30 max-w-xs">Once evaluations are approved, they will appear here grouped by member.</p>
+                            </div>
+                        )}
+                    </div>
                 </motion.div>
             </motion.div>
         </PageTransition>

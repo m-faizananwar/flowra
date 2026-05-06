@@ -9,11 +9,13 @@ const supabase = createClient(
 );
 
 async function syncRepositoriesWithEngine({ integrationId, installationId, userId }) {
-  const engineUrl = process.env.FLOWRA_ENGINE_URL;
+  let engineUrl = process.env.FLOWRA_ENGINE_URL;
   if (!engineUrl) {
     console.warn('FLOWRA_ENGINE_URL is not configured; skipping immediate GitHub repo sync.');
     return { skipped: true };
   }
+  // Force IPv4 loopback for Node.js fetch compatibility
+  engineUrl = engineUrl.replace('localhost', '127.0.0.1');
 
   const response = await fetch(`${engineUrl.replace(/\/$/, '')}/api/github/sync`, {
     method: 'POST',
@@ -102,7 +104,7 @@ export async function GET(request) {
       integration = data;
     }
 
-    // 2. Confirm the installation can access repositories, then persist them.
+    // 2. Trigger repo sync — don't fail the whole callback if engine is temporarily down.
     try {
       await syncRepositoriesWithEngine({
         integrationId: integration.id,
@@ -110,14 +112,9 @@ export async function GET(request) {
         userId,
       });
     } catch (syncError) {
-      await supabase
-        .from('integrations')
-        .update({
-          is_active: false,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', integration.id);
-      throw syncError;
+      // Log the error but don't disable the integration — the installation_id is saved.
+      // Repos will sync the next time the webhook fires or user hits "Re-Sync".
+      console.warn('GitHub repo sync failed after callback, integration remains active:', syncError.message);
     }
 
     // 3. Redirect back to integrations with success
