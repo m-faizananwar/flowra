@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Loader2, Target, Activity, Zap, CheckCircle2, Clock, AlertCircle, RefreshCw } from "lucide-react";
 import { PageTransition, staggerContainer, staggerItem } from "@/components/animations/PageTransition";
 import { createClient } from "@supabase/supabase-js";
+import { ArchiveAndBacklog } from "../board/ArchiveAndBacklog";
 
 const STATUS_CONFIG: Record<string, { color: string; icon: React.ElementType; label: string }> = {
   "Done":        { color: "text-emerald-400", icon: CheckCircle2, label: "Done" },
@@ -110,6 +111,11 @@ export function AnalyticsContent() {
     };
 
     issues.forEach(issue => {
+      // ONLY show issues in the live board if they belong to the active sprint
+      if (sprint?.jira_sprint_id && issue.sprint_jira_id !== sprint.jira_sprint_id) {
+        return;
+      }
+
       const s = (issue.status || "").toLowerCase();
       if (["done", "closed", "resolved", "completed"].includes(s)) {
         columns.done.push(issue);
@@ -124,6 +130,33 @@ export function AnalyticsContent() {
   };
 
   const boardData = getBoardData();
+
+  const handleManualRefresh = async () => {
+    setIsLoading(true);
+    try {
+      const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      );
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      // Trigger Fast Sync (No AI)
+      await fetch('/api/analysis/run', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session?.access_token}`
+        },
+        body: JSON.stringify({ analysis_type: 'jira', sync_only: true })
+      });
+      
+      // Now fetch the updated data
+      await fetchData();
+    } catch (err: any) {
+      setError(err.message);
+      setIsLoading(false);
+    }
+  };
 
   return (
     <PageTransition pageTitle="Sprint Analytics">
@@ -155,8 +188,13 @@ export function AnalyticsContent() {
                 Board
               </button>
             </div>
-            <button onClick={fetchData} className="flex items-center gap-2.5 px-6 h-12 rounded-2xl bg-[#24FF7C] text-black text-[11px] font-black uppercase tracking-widest hover:brightness-110 transition-all shadow-[0_4px_20px_rgba(36,255,124,0.15)] active:scale-95">
-              <RefreshCw className="w-4 h-4" /> Refresh
+            <button 
+              onClick={handleManualRefresh} 
+              disabled={isLoading}
+              className="flex items-center gap-2.5 px-6 h-12 rounded-2xl bg-[#24FF7C] text-black text-[11px] font-black uppercase tracking-widest hover:brightness-110 transition-all shadow-[0_4px_20px_rgba(36,255,124,0.15)] active:scale-95 disabled:opacity-50"
+            >
+              {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />} 
+              {isLoading ? "Syncing..." : "Refresh"}
             </button>
           </div>
         </div>
@@ -290,6 +328,9 @@ export function AnalyticsContent() {
             )}
           </motion.div>
         )}
+
+        {/* Inventory & Roadmap (History + Backlog) Section */}
+        <ArchiveAndBacklog issues={issues} />
 
         {/* Velocity History */}
         {pastSprints.length > 0 && (

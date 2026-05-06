@@ -43,12 +43,18 @@ export async function GET(request) {
       .limit(5);
 
     // Fetch cached Jira issues for this user's active sprint
-    // 4. Get jira_issues for this user that are strictly in the active sprint
-    const { data: jiraIssues, error: issuesError } = await serviceClient
+    // 4. Get jira_issues for this user that belong to the same project as the active sprint
+    // We filter by project_key if we have an active sprint, otherwise we fetch all to allow backlog view
+    let query = serviceClient
       .from('jira_issues')
       .select('*')
-      .eq('user_id', user.id)
-      .eq('sprint_jira_id', activeSprint?.jira_sprint_id);
+      .eq('user_id', user.id);
+
+    if (activeSprint?.project_key) {
+      query = query.eq('project_key', activeSprint.project_key);
+    }
+
+    const { data: jiraIssues, error: issuesError } = await query;
 
     if (issuesError) throw issuesError;
 
