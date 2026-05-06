@@ -23,10 +23,7 @@ import {
     Table,
     CalendarClock,
     LayoutGrid,
-    GitPullRequest,
-    History as HistoryIcon,
     Puzzle,
-    Radio,
     Target,
     AreaChart,
     LogOut,
@@ -39,24 +36,11 @@ import { supabase } from "@/lib/supabase";
 
 const MENU_SECTIONS = [
     {
-        title: "Home",
+        title: "Workspace",
         items: [
             { icon: HomeIcon, label: "Overview", href: "/dashboard" },
-        ]
-    },
-    {
-        title: "Agile Orchestration",
-        items: [
             { icon: LayoutGrid, label: "Jira Sync", href: "/jira", badge: "Live" },
-            { icon: GitPullRequest, label: "PR Verification", href: "/pr" },
-            { icon: HistoryIcon, label: "Audit Logs", href: "/audit" },
-        ]
-    },
-    {
-        title: "Connectivity",
-        items: [
             { icon: Puzzle, label: "Integrations", href: "/integrations" },
-            { icon: Radio, label: "Signals", href: "/signals" },
         ]
     },
     {
@@ -85,6 +69,7 @@ export function Sidebar({
     const pathname = usePathname();
     const router = useRouter();
     const [userData, setUserData] = useState<{ email?: string; name?: string }>({});
+    const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
 
     const handleLogout = async () => {
         await supabase.auth.signOut();
@@ -305,10 +290,13 @@ export function Sidebar({
                         
                         {/* Company Switcher & Logout Container */}
                         <div className="flex flex-col gap-3 w-full">
+                            <div className="relative w-full">
                             <div className={cn(
                                 "flex items-center justify-between p-3 rounded-[1.25rem] bg-white/[0.04] border border-white/5 group hover:bg-white/[0.07] transition-all cursor-pointer w-full",
                                 isCollapsed && "flex-col gap-4 p-2"
-                            )}>
+                            )}
+                                onClick={() => setIsProfileMenuOpen((v) => !v)}
+                            >
                                 <div className={cn("flex items-center gap-3", isCollapsed && "flex-col")}>
                                     <div className="w-9 h-9 rounded-full bg-black border border-white/10 flex items-center justify-center overflow-hidden shadow-xl ring-2 ring-white/5 shrink-0">
                                         <div className="text-[11px] font-black text-white italic tracking-tighter opacity-80 group-hover:opacity-100 transition-opacity">FLWR</div>
@@ -320,20 +308,29 @@ export function Sidebar({
                                         </div>
                                     )}
                                 </div>
-                            </div>
-
-                            <button 
-                                onClick={handleLogout}
-                                className={cn(
-                                    "flex items-center gap-3 w-full p-4 rounded-2xl bg-red-500/5 border border-red-500/10 text-red-400/60 hover:bg-red-500/10 hover:text-red-400 transition-all active:scale-[0.98] group",
-                                    isCollapsed && "justify-center p-3.5"
-                                )}
-                            >
-                                <LogOut className={cn("w-5 h-5", !isCollapsed && "shrink-0")} />
                                 {!isCollapsed && (
-                                    <span className="text-[13px] font-black uppercase tracking-[0.1em]">Sign Out</span>
+                                    <ChevronDown className={cn("w-4 h-4 text-white/20 transition-transform", isProfileMenuOpen && "rotate-180")} />
                                 )}
-                            </button>
+                            </div>
+                                {isProfileMenuOpen && (
+                                    <div className={cn(
+                                        "absolute z-50 mt-2 rounded-xl border border-white/10 bg-[#121316] shadow-2xl overflow-hidden",
+                                        isCollapsed ? "left-1/2 -translate-x-1/2 w-40" : "right-0 w-44"
+                                    )}>
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setIsProfileMenuOpen(false);
+                                                handleLogout();
+                                            }}
+                                            className="w-full flex items-center gap-2 px-3 py-2.5 text-red-400/80 hover:text-red-400 hover:bg-red-500/10 transition-colors text-[11px] font-black uppercase tracking-widest"
+                                        >
+                                            <LogOut className="w-4 h-4" />
+                                            Logout
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>
