@@ -1,6 +1,5 @@
 "use client";
 
-import { User, Wallet, LayoutGrid } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { NotificationsPanel } from "./NotificationsPanel";
 
@@ -39,27 +38,13 @@ export function Header({ userEmail = "User" }: HeaderProps) {
 
             <div className="flex items-center gap-6">
                 <div className="flex items-center gap-4">
-                    <button className="p-2 text-white/40 hover:text-white transition-colors">
-                        <LayoutGrid className="w-6 h-6 stroke-[1.5px]" />
-                    </button>
-
                     <NotificationsPanel />
-                    
-                    <button className="p-2 text-white/40 hover:text-white transition-colors">
-                        <Wallet className="w-6 h-6 stroke-[1.5px]" />
-                    </button>
                 </div>
                 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center">
                     <div className="text-right hidden sm:block">
                         <p className="text-[10px] font-black text-white uppercase tracking-wider">{userEmail.split('@')[0]}</p>
                         <p className="text-[8px] font-bold text-[#24FF7C] uppercase tracking-widest leading-none mt-0.5">Pro Member</p>
-                    </div>
-                    <div className="relative group cursor-pointer">
-                        <div className="absolute -inset-1 rounded-full border border-white/10 group-hover:border-white/20 transition-colors" />
-                        <div className="relative w-10 h-10 rounded-full bg-[#FDE6D2] border-2 border-[#33353F] flex items-center justify-center overflow-hidden">
-                            <User className="w-6 h-6 text-[#4A4C56] mt-2" />
-                        </div>
                     </div>
                 </div>
             </div>
