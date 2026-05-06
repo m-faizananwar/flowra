@@ -33,8 +33,12 @@ const MOCK_COMMITMENTS = [
     { id: '4', merchant: 'Vercel Pro', amount: 20.00, dueDate: new Date(Date.now() - 86400000 * 10), status: 'paid', isAuto: true },
 ];
 
-export function PendingCommitments() {
-    const [commitments, setCommitments] = useState<any[]>(MOCK_COMMITMENTS);
+interface PendingCommitmentsProps {
+    commitmentsData?: any[];
+}
+
+export function PendingCommitments({ commitmentsData }: PendingCommitmentsProps) {
+    const [commitments, setCommitments] = useState<any[]>(commitmentsData?.length ? commitmentsData : MOCK_COMMITMENTS);
     const [isLoading, setIsLoading] = useState(false);
     const [suggestion, setSuggestion] = useState<any | null>({
         merchant: "AWS Infrastructure",
@@ -48,6 +52,12 @@ export function PendingCommitments() {
     const [newAmount, setNewAmount] = useState("");
     const [newDay, setNewDay] = useState("18");
     const [selectedCategory, setSelectedCategory] = useState("other");
+
+    useEffect(() => {
+        if (commitmentsData && commitmentsData.length > 0) {
+            setCommitments(commitmentsData);
+        }
+    }, [commitmentsData]);
 
     const markAsPaid = (id: string) => {
         setCommitments(prev => prev.map(c => c.id === id ? { ...c, status: 'paid' } : c));
