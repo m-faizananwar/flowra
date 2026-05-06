@@ -8,7 +8,7 @@ type Transaction = {
     id: string;
     title: string;
     amount: number;
-    date: Date;
+    date: Date | string;
     category: "shopping" | "food" | "home" | "utilities" | "other";
     type: "income" | "expense";
 };
@@ -63,6 +63,7 @@ export function RecentTransactions({ transactions = MOCK_TRANSACTIONS }: RecentT
                 {transactions.map((tx, i) => {
                     const Icon = CATEGORY_ICONS[tx.category] || Wallet;
                     const colorClass = CATEGORY_COLORS[tx.category] || CATEGORY_COLORS.other;
+                    const txDate = tx.date instanceof Date ? tx.date : new Date(tx.date);
 
                     return (
                         <motion.div
@@ -81,7 +82,7 @@ export function RecentTransactions({ transactions = MOCK_TRANSACTIONS }: RecentT
                                         {tx.title}
                                     </h4>
                                     <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest mt-0.5">
-                                        {format(tx.date, "MMM dd • p")}
+                                        {format(txDate, "MMM dd • p")}
                                     </p>
                                 </div>
                             </div>
