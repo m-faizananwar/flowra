@@ -85,6 +85,19 @@ function calculateTotal(scores: any[], metrics: any[]) {
     return totalWeight ? Math.round((weighted / totalWeight) * 100) / 100 : 0;
 }
 
+function normalizeIdentity(value: string | null | undefined) {
+    return (value || "").trim().toLowerCase();
+}
+
+function memberCanonicalKey(member: any) {
+    const alias = normalizeIdentity(member?.alias);
+    const fullName = normalizeIdentity(member?.full_name);
+    const role = normalizeIdentity(member?.role);
+    if (alias) return `alias:${alias}|role:${role}`;
+    if (fullName) return `name:${fullName}|role:${role}`;
+    return `id:${member?.id || "unknown"}`;
+}
+
 function ScoreRing({ score, size = 80 }: { score: number; size?: number }) {
     const r = (size - 10) / 2;
     const circ = 2 * Math.PI * r;
@@ -112,12 +125,45 @@ export function PerformanceContent() {
     const [activeEvaluation, setActiveEvaluation] = useState<any | null>(null);
     const [draftScores, setDraftScores] = useState<any[]>([]);
     const [newMetric, setNewMetric] = useState({ name: "", description: "", weight: 1, role: "", member_id: "" });
-    const roles = useMemo(() => Array.from(new Set(members.map((m) => m.role).filter(Boolean))), [members]);
     const [showEditHistory, setShowEditHistory] = useState(false);
     const [historySearch, setHistorySearch] = useState("");
     const [historyDateFilter, setHistoryDateFilter] = useState<"all" | "today" | "week" | "month">("all");
 
+    const dedupedMembers = useMemo(() => {
+        const byKey = new Map<string, any>();
+        for (const member of members) {
+            const key = memberCanonicalKey(member);
+            const existing = byKey.get(key);
+            if (!existing) {
+                byKey.set(key, member);
+                continue;
+            }
+            const existingHasAvatar = Boolean(existing.avatar_url);
+            const currentHasAvatar = Boolean(member.avatar_url);
+            const existingHasAlias = Boolean(existing.alias);
+            const currentHasAlias = Boolean(member.alias);
+            if ((!existingHasAvatar && currentHasAvatar) || (!existingHasAlias && currentHasAlias)) {
+                byKey.set(key, member);
+            }
+        }
+        return Array.from(byKey.values());
+    }, [members]);
+
+    const roles = useMemo(() => Array.from(new Set(dedupedMembers.map((m) => m.role).filter(Boolean))), [dedupedMembers]);
+
     const pendingEvaluations = useMemo(() => evaluations.filter((e) => e.status === "pending"), [evaluations]);
+    const dedupedPendingEvaluations = useMemo(() => {
+        const byMember = new Map<string, any>();
+        for (const item of pendingEvaluations) {
+            const memberKey = memberCanonicalKey(item.members || { id: item.member_id });
+            const existing = byMember.get(memberKey);
+            if (!existing || new Date(item.created_at) > new Date(existing.created_at)) {
+                byMember.set(memberKey, item);
+            }
+        }
+        return Array.from(byMember.values());
+    }, [pendingEvaluations]);
+
     const approvedEvaluations = useMemo(() => {
         const approved = evaluations.filter((e) => e.status === "approved");
         const now = new Date();
@@ -144,20 +190,21 @@ export function PerformanceContent() {
     const memberScoreMap = useMemo(() => {
         const map: Record<string, any> = {};
         for (const e of approvedEvaluations) {
-            if (e.member_id && (!map[e.member_id] || new Date(e.created_at) > new Date(map[e.member_id].created_at))) {
-                map[e.member_id] = e;
+            const key = memberCanonicalKey(e.members || { id: e.member_id });
+            if (key && (!map[key] || new Date(e.created_at) > new Date(map[key].created_at))) {
+                map[key] = e;
             }
         }
         return map;
     }, [approvedEvaluations]);
 
     const chartData = useMemo(() =>
-        members.map((m) => ({
+        dedupedMembers.map((m) => ({
             name: (m.full_name || m.alias || "?").split(" ")[0],
-            score: Number(memberScoreMap[m.id]?.total_score || 0),
+            score: Number(memberScoreMap[memberCanonicalKey(m)]?.total_score || 0),
             role: m.role || "—",
         })),
-        [members, memberScoreMap]);
+        [dedupedMembers, memberScoreMap]);
 
     useEffect(() => { loadData(); }, []);
     useEffect(() => { if (activeEvaluation) setDraftScores(activeEvaluation.metric_scores || []); }, [activeEvaluation]);
@@ -288,11 +335,11 @@ export function PerformanceContent() {
                         <div className="relative z-10 mt-6 pt-6 border-t border-white/[0.05] grid grid-cols-3 gap-6">
                             <div>
                                 <p className="text-white/30 text-[10px] font-black uppercase tracking-[0.2em] mb-1">Members</p>
-                                <p className="text-3xl font-black text-white" style={{ fontFamily: "Outfit, sans-serif" }}>{members.length}</p>
+                                <p className="text-3xl font-black text-white" style={{ fontFamily: "Outfit, sans-serif" }}>{dedupedMembers.length}</p>
                             </div>
                             <div>
                                 <p className="text-white/30 text-[10px] font-black uppercase tracking-[0.2em] mb-1">Pending</p>
-                                <p className="text-3xl font-black text-[#F59E0B]" style={{ fontFamily: "Outfit, sans-serif" }}>{pendingEvaluations.length}</p>
+                                <p className="text-3xl font-black text-[#F59E0B]" style={{ fontFamily: "Outfit, sans-serif" }}>{dedupedPendingEvaluations.length}</p>
                             </div>
                             <div>
                                 <p className="text-white/30 text-[10px] font-black uppercase tracking-[0.2em] mb-1">Approved</p>
@@ -403,12 +450,12 @@ export function PerformanceContent() {
                                 <Users className="w-4 h-4 text-[#24FF7C]" />
                                 <p className="text-[11px] font-black text-white/40 uppercase tracking-widest">Workspace Members</p>
                             </div>
-                            <span className="text-[10px] font-black text-white/20">{members.length}</span>
+                            <span className="text-[10px] font-black text-white/20">{dedupedMembers.length}</span>
                         </div>
-                        {members.length === 0 ? (
+                        {dedupedMembers.length === 0 ? (
                             <p className="text-sm text-white/20 py-4">No members in workspace.</p>
-                        ) : members.map((member) => {
-                            const latest = memberScoreMap[member.id];
+                        ) : dedupedMembers.map((member) => {
+                            const latest = memberScoreMap[memberCanonicalKey(member)];
                             const score = latest ? Number(latest.total_score) : null;
                             const color = score === null ? "text-white/20" : score >= 75 ? "text-[#24FF7C]" : score >= 50 ? "text-[#F59E0B]" : "text-[#FF8A8A]";
                             return (
@@ -428,7 +475,7 @@ export function PerformanceContent() {
                 </div>
 
                 {/* ── Pending Review List ── */}
-                {pendingEvaluations.length > 0 && (
+                {dedupedPendingEvaluations.length > 0 && (
                     <motion.div variants={staggerItem} className="glass-panel rounded-[2.5rem] p-8 space-y-6">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
@@ -437,13 +484,13 @@ export function PerformanceContent() {
                                 </div>
                                 <div>
                                     <h3 className="text-base font-black text-white">Pending Reviews</h3>
-                                    <p className="text-[10px] text-white/30 uppercase tracking-widest">{pendingEvaluations.length} items require your attention</p>
+                                    <p className="text-[10px] text-white/30 uppercase tracking-widest">{dedupedPendingEvaluations.length} items require your attention</p>
                                 </div>
                             </div>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                            {pendingEvaluations.map((item) => (
+                            {dedupedPendingEvaluations.map((item) => (
                                 <button 
                                     key={item.id} 
                                     onClick={() => setActiveEvaluation(item)} 
@@ -625,7 +672,7 @@ export function PerformanceContent() {
                         </select>
                         <select value={newMetric.member_id} onChange={(e) => setNewMetric({ ...newMetric, member_id: e.target.value, role: "" })} className="h-11 rounded-xl bg-black/30 border border-white/10 px-3 text-sm text-white focus:outline-none focus:border-[#24FF7C]/40">
                             <option value="all">All Members</option>
-                            {members.map(m => <option key={m.id} value={m.id}>{m.full_name || m.alias}</option>)}
+                            {dedupedMembers.map(m => <option key={m.id} value={m.id}>{m.full_name || m.alias}</option>)}
                         </select>
                         <div className="space-y-1.5">
                             <input 
