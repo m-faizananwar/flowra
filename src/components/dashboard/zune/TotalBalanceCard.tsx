@@ -5,11 +5,10 @@ import { Info } from "lucide-react";
 import { Zap } from "lucide-react";
 
 interface TotalBalanceCardProps {
-    totalBalance?: number;
-    totalCash?: number;
-    pending?: number;
-    savings?: number;
-    currency?: string;
+    sprintVelocity?: number;
+    completed?: number;
+    inReview?: number;
+    blocked?: number;
 }
 
 const MathIcon = () => (
@@ -24,11 +23,10 @@ const MathIcon = () => (
 );
 
 export function TotalBalanceCard({
-    totalBalance = 42550.75,
-    totalCash = 58200.00,
-    pending = 12450.00,
-    savings = 3199.25,
-    currency = "$"
+    sprintVelocity = 84,
+    completed = 128,
+    inReview = 24,
+    blocked = 7,
 }: TotalBalanceCardProps) {
     return (
         <motion.div
@@ -45,7 +43,7 @@ export function TotalBalanceCard({
 
                 <div className="space-y-4">
                     <h2 className="text-6xl lg:text-[4.5rem] font-black text-white tracking-tighter leading-none" style={{ fontFamily: 'Outfit, sans-serif' }}>
-                        84%
+                        {Math.max(0, Math.min(100, Number(sprintVelocity || 0)))}%
                     </h2>
 
                     <div className="flex items-center gap-2.5 text-zinc-400 text-lg font-medium pt-1">
@@ -59,19 +57,19 @@ export function TotalBalanceCard({
                 <div className="space-y-2">
                     <p className="text-zinc-500 text-[0.7rem] font-black uppercase tracking-[0.2em]">Completed</p>
                     <p className="text-[2.25rem] font-bold text-[#75D69C] leading-none tracking-tighter">
-                        128
+                        {Number(completed || 0)}
                     </p>
                 </div>
                 <div className="space-y-2">
                     <p className="text-zinc-500 text-[0.7rem] font-black uppercase tracking-[0.2em]">In Review</p>
                     <p className="text-[2.25rem] font-bold text-[#FF9B9B] leading-none tracking-tighter">
-                        24
+                        {Number(inReview || 0)}
                     </p>
                 </div>
                 <div className="space-y-2">
                     <p className="text-zinc-500 text-[0.7rem] font-black uppercase tracking-[0.2em]">Blocked</p>
                     <p className="text-[2.25rem] font-bold text-[#A78BFA] leading-none tracking-tighter">
-                        7
+                        {Number(blocked || 0)}
                     </p>
                 </div>
             </div>
