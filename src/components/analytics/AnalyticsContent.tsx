@@ -210,12 +210,10 @@ export function AnalyticsContent() {
 
         {/* KPI Cards */}
         {metrics && (
-          <motion.div variants={staggerItem} className="grid grid-cols-2 xl:grid-cols-4 gap-6">
+          <motion.div variants={staggerItem} className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {[
-              { label: "Completion", value: `${metrics.completion_rate}%`, icon: Target, color: "text-emerald-400", border: "border-emerald-500/20", grad: "from-emerald-500/20 to-emerald-500/5" },
               { label: "Velocity",   value: `${metrics.velocity}%`,       icon: Zap,    color: "text-blue-400",    border: "border-blue-500/20",    grad: "from-blue-500/20 to-blue-500/5" },
               { label: "Done",       value: `${metrics.completed_issues}/${metrics.total_issues}`, icon: CheckCircle2, color: "text-purple-400", border: "border-purple-500/20", grad: "from-purple-500/20 to-purple-500/5" },
-              { label: "Story Pts",  value: `${metrics.story_points_completed ?? 0}`, icon: Activity, color: "text-amber-400", border: "border-amber-500/20", grad: "from-amber-500/20 to-amber-500/5" },
             ].map((kpi) => {
               const Icon = kpi.icon;
               return (
