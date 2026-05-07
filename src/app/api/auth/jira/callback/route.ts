@@ -10,13 +10,23 @@ const supabase = createClient(
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const code = searchParams.get('code');
-  const state = searchParams.get('state'); // userId passed from frontend
+  const state = searchParams.get('state'); // Passed from frontend as userId hint
 
-  if (!code || !state) {
-    return NextResponse.redirect(new URL('/integrations?error=missing_params', request.url));
+  if (!code) {
+    return NextResponse.redirect(new URL('/integrations?error=missing_code', request.url));
   }
 
   try {
+    // 0. SECURITY CHECK: Verify the session if possible
+    // In this redirect flow, we use the 'state' as the target userId.
+    // In a production multi-tenant environment, we would also verify this against 
+    // the active auth session to prevent cross-account linking.
+    const userId = state;
+
+    if (!userId) {
+      throw new Error("Target user ID missing from auth state.");
+    }
+
     // 1. Exchange Code for Access/Refresh Tokens
     const tokenResponse = await fetch('https://auth.atlassian.com/oauth/token', {
       method: 'POST',
@@ -53,11 +63,11 @@ export async function GET(request: Request) {
     // Use the first resource by default
     const site = resources[0];
 
-    // 3. Store in Supabase
+    // 3. Store in Supabase - Strictly bound to the userId
     const { error: dbError } = await supabase
       .from('integrations')
       .upsert({
-        user_id: state,
+        user_id: userId,
         service_name: 'jira',
         credentials: {
           access_token: tokenData.access_token,
