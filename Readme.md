@@ -92,7 +92,6 @@ Flowra evaluates team performance using objective metrics across all roles:
 | **Marketing** | Campaign Updates, Copy Drafts | Telegram / Google Drive |
 | **QA** | Bug Reports, Regression Tests | Jira / Codebase |
 
-
 ---
 
 ## 🎯 Vision
