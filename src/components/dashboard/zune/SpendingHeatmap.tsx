@@ -26,7 +26,7 @@ const getIntensity = (amount: number) => {
 };
 
 interface SpendingHeatmapProps {
-    data?: { day: number; amount: number; date?: string }[];
+    data?: { day: number; amount: number; date?: string; score?: number; risks?: number; jiraUpdates?: number }[];
 }
 
 export function SpendingHeatmap({ data: liveData }: SpendingHeatmapProps) {
@@ -119,24 +119,32 @@ export function SpendingHeatmap({ data: liveData }: SpendingHeatmapProps) {
                                                         </div>
                                                         
                                                         <div className="flex flex-col mb-4 mt-2">
-                                                            <span className="text-[9px] font-black text-white/30 uppercase tracking-[0.2em] mb-1">Impact Level</span>
+                                                            <span className="text-[9px] font-black text-white/30 uppercase tracking-[0.2em] mb-1">Signal Density</span>
                                                             <span className="text-2xl font-black text-white italic" style={{ fontFamily: 'Outfit, sans-serif' }}>
-                                                                {data.amount === 0 ? "STABLE" : `${data.amount} Units`}
+                                                                {data.amount === 0 ? "STABLE" : `${data.amount} Events`}
                                                             </span>
                                                         </div>
 
                                                         <div className="space-y-2 pt-2 border-t border-white/5 mb-4">
                                                             <div className="flex items-center justify-between">
-                                                                 <span className="text-[10px] text-white/40 font-bold uppercase tracking-tight">Status</span>
-                                                                 <span className={cn("text-[10px] font-black uppercase", data.amount > 0 ? "text-[#24FF7C]" : "text-white/20")}>
-                                                                     {data.amount > 0 ? "Active" : "Idle"}
-                                                                 </span>
-                                                             </div>
-                                                             <div className="flex items-center justify-between">
-                                                                 <span className="text-[10px] text-white/40 font-bold uppercase tracking-tight">Reliability</span>
-                                                                 <span className="text-[10px] text-indigo-400 font-black">99.2%</span>
-                                                             </div>
-                                                         </div>
+                                                                <span className="text-[10px] text-white/40 font-bold uppercase tracking-tight">Average Score</span>
+                                                                <span className={cn("text-[10px] font-black uppercase", data.score > 0 ? "text-[#24FF7C]" : "text-white/20")}>
+                                                                    {data.score > 0 ? data.score : "N/A"}
+                                                                </span>
+                                                            </div>
+                                                            <div className="flex items-center justify-between">
+                                                                <span className="text-[10px] text-white/40 font-bold uppercase tracking-tight">Risk Assessments</span>
+                                                                <span className={cn("text-[10px] font-black uppercase", data.risks > 0 ? "text-orange-400" : "text-white/20")}>
+                                                                    {data.risks || 0}
+                                                                </span>
+                                                            </div>
+                                                            <div className="flex items-center justify-between">
+                                                                <span className="text-[10px] text-white/40 font-bold uppercase tracking-tight">Jira Updates</span>
+                                                                <span className={cn("text-[10px] font-black uppercase", data.jiraUpdates > 0 ? "text-[#3B82F6]" : "text-white/20")}>
+                                                                    {data.jiraUpdates || 0}
+                                                                </span>
+                                                            </div>
+                                                        </div>
 
                                                          <button className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl bg-white/[0.05] hover:bg-white/[0.1] border border-white/5 text-white text-[9px] font-black uppercase tracking-widest transition-all active:scale-95 pointer-events-auto">
                                                             View Signal Log

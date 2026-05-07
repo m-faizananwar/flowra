@@ -2,99 +2,135 @@
 
 import { motion } from "framer-motion";
 import { format } from "date-fns";
-import { ShoppingBag, Coffee, Home, Zap, ArrowRight, Wallet } from "lucide-react";
+import { Zap, Activity, ChevronRight, CheckCircle2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
-type Transaction = {
+type ActivityItem = {
     id: string;
     title: string;
     amount: number;
     date: Date | string;
-    category: "shopping" | "food" | "home" | "utilities" | "other";
+    category: "utilities" | "other";
     type: "income" | "expense";
 };
 
-const CATEGORY_ICONS = {
-    shopping: ShoppingBag,
-    food: Coffee,
-    home: Home,
-    utilities: Zap,
-    other: Wallet,
-};
-
-const CATEGORY_COLORS = {
-    shopping: "text-purple-400 bg-purple-500/10 border-purple-500/20",
-    food: "text-orange-400 bg-orange-500/10 border-orange-500/20",
-    home: "text-blue-400 bg-blue-500/10 border-blue-500/20",
-    utilities: "text-yellow-400 bg-yellow-500/10 border-yellow-500/20",
-    other: "text-gray-400 bg-gray-500/10 border-gray-500/20",
-};
-
-const MOCK_TRANSACTIONS: Transaction[] = [
-    { id: '1', title: 'Apple Store', amount: 999.00, date: new Date(), category: 'shopping', type: 'expense' },
-    { id: '2', title: 'Starbucks', amount: 6.50, date: new Date(), category: 'food', type: 'expense' },
-    { id: '3', title: 'Zune Subscription', amount: 15.00, date: new Date(), category: 'utilities', type: 'expense' },
-    { id: '4', title: 'Rent Payment', amount: 2400.00, date: new Date(), category: 'home', type: 'expense' },
-    { id: '5', title: 'Salary Deposit', amount: 8500.00, date: new Date(), category: 'other', type: 'income' },
+const MOCK_ACTIVITY: ActivityItem[] = [
+    { id: '1', title: 'New Risk Detected', amount: 0, date: new Date(), category: 'utilities', type: 'expense' },
+    { id: '2', title: 'Evaluation Approved', amount: 0, date: new Date(), category: 'utilities', type: 'income' },
 ];
 
-interface RecentTransactionsProps {
-    transactions?: Transaction[];
+interface RecentActivityProps {
+    transactions?: ActivityItem[];
 }
 
-export function RecentTransactions({ transactions = MOCK_TRANSACTIONS }: RecentTransactionsProps) {
+export function RecentTransactions({ transactions = MOCK_ACTIVITY }: RecentActivityProps) {
     return (
         <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
-            className="rounded-[2rem] p-6 h-full flex flex-col glass-panel"
+            className="w-full h-full flex flex-col space-y-4"
         >
-            <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-black text-white tracking-tight" style={{ fontFamily: 'Outfit, sans-serif' }}>
-                    Recent Activity
-                </h3>
-                <button className="text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-xl bg-white/[0.03] border border-white/5 text-white/40 hover:text-white flex items-center gap-2 transition-all group">
-                    View All
-                    <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-                </button>
+            <div className="flex flex-col gap-4">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h3 className="text-xl font-black text-white tracking-tight" style={{ fontFamily: 'Outfit, sans-serif' }}>
+                            Recent Activity
+                        </h3>
+                        <p className="text-[10px] text-white/40 font-black uppercase tracking-[0.2em]">Global Event Feed</p>
+                    </div>
+                </div>
+                
+                <div className="flex flex-col gap-2">
+                    <div className="flex items-center justify-between text-[9px] font-black uppercase tracking-widest">
+                        <span className="text-white/40">Event Volume</span>
+                        <span className="text-indigo-400">
+                            {transactions.length} Events
+                        </span>
+                    </div>
+                    <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
+                        <motion.div 
+                            initial={{ width: 0 }}
+                            animate={{ width: `100%` }}
+                            transition={{ duration: 1, ease: "easeOut" }}
+                            className="h-full bg-indigo-500 shadow-[0_0_10px_rgba(99,102,241,0.5)]"
+                        />
+                    </div>
+                </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto space-y-4 pr-2 custom-scrollbar">
-                {transactions.map((tx, i) => {
-                    const Icon = CATEGORY_ICONS[tx.category] || Wallet;
-                    const colorClass = CATEGORY_COLORS[tx.category] || CATEGORY_COLORS.other;
-                    const txDate = tx.date instanceof Date ? tx.date : new Date(tx.date);
+            <div className="flex-1 glass-card rounded-[1.5rem] border border-white/5 bg-white/[0.02] overflow-hidden flex flex-col relative min-h-[500px]">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/5 rounded-full blur-[80px] pointer-events-none" />
+                
+                <div className="flex-1 overflow-y-auto custom-scrollbar scrollbar-none p-5 space-y-3 relative z-10">
+                    <h4 className="text-[10px] font-black text-white/20 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
+                        Latest Feed
+                    </h4>
 
-                    return (
-                        <motion.div
-                            key={tx.id}
-                            initial={{ opacity: 0, x: -10 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: 0.1 * i }}
-                            className="flex items-center justify-between p-3 rounded-2xl hover:bg-white/5 transition-all group cursor-pointer active:scale-[0.98]"
-                        >
-                            <div className="flex items-center gap-4">
-                                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center border ${colorClass}`}>
-                                    <Icon className="w-5 h-5 stroke-[1.5px]" />
+                    {transactions.map((tx, i) => {
+                        const txDate = tx.date instanceof Date ? tx.date : new Date(tx.date);
+                        const isCompleted = tx.type === 'income';
+                        
+                        return (
+                            <motion.div
+                                key={tx.id}
+                                initial={{ opacity: 0, x: -10 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: 0.05 * i }}
+                                className={cn(
+                                    "flex items-center justify-between p-4 rounded-2xl border transition-all duration-300 relative overflow-hidden group hover:bg-white/[0.04]",
+                                    isCompleted ? "border-emerald-500/10 bg-emerald-500/5" : "border-white/10 bg-white/[0.03]"
+                                )}
+                            >
+                                <div className="flex items-center gap-4 relative z-10">
+                                    <div className={cn(
+                                        "w-10 h-10 rounded-full flex items-center justify-center transition-all",
+                                        isCompleted ? "bg-emerald-500/10 text-emerald-400" : "bg-white/5 text-white/30 group-hover:bg-indigo-500/10 group-hover:text-indigo-400"
+                                    )}>
+                                        {isCompleted ? <CheckCircle2 className="w-5 h-5" /> : <Activity className="w-5 h-5" />}
+                                    </div>
+                                    
+                                    <div>
+                                        <p className={cn(
+                                            "text-[14px] font-bold tracking-tight transition-colors",
+                                            isCompleted ? "text-emerald-400" : "text-white group-hover:text-indigo-400"
+                                        )}>
+                                            {tx.title}
+                                        </p>
+                                        <div className="flex items-center gap-2 mt-1">
+                                            <span className="text-[9px] font-black uppercase tracking-widest text-white/40">
+                                                {format(txDate, "MMM dd • p")}
+                                            </span>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div>
-                                    <h4 className="font-bold text-white group-hover:text-[#24FF7C] transition-colors tracking-tight">
-                                        {tx.title}
-                                    </h4>
-                                    <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest mt-0.5">
-                                        {format(txDate, "MMM dd • p")}
+
+                                <div className="text-right relative z-10">
+                                    <p className={cn(
+                                        "text-[12px] font-black uppercase tracking-widest",
+                                        isCompleted ? "text-emerald-400" : "text-white/50"
+                                    )}>
+                                        {isCompleted ? "Completed" : "Logged"}
                                     </p>
                                 </div>
-                            </div>
-
-                            <div className="text-right">
-                                <span className={`text-[1.1rem] font-black tracking-tight ${tx.type === 'expense' ? 'text-white' : 'text-[#24FF7C]'}`} style={{ fontFamily: 'Outfit, sans-serif' }}>
-                                    {tx.type === 'expense' ? '-' : '+'}${Math.abs(tx.amount).toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                                </span>
-                            </div>
-                        </motion.div>
-                    );
-                })}
+                            </motion.div>
+                        );
+                    })}
+                </div>
+                
+                <div className="px-5 py-4 bg-white/[0.02] border-t border-white/5 flex items-center justify-between z-20 backdrop-blur-md">
+                    <div className="flex flex-col">
+                        <span className="text-[9px] font-black text-white/30 uppercase tracking-widest mb-0.5">Total History</span>
+                        <span className="text-[14px] font-black text-white" style={{ fontFamily: 'Outfit, sans-serif' }}>
+                            {transactions.length} Records
+                        </span>
+                    </div>
+                    <button className="flex items-center gap-1.5 text-[9px] font-black text-white/40 uppercase tracking-widest hover:text-indigo-400 transition-colors">
+                        View All
+                        <ChevronRight className="w-3.5 h-3.5" />
+                    </button>
+                </div>
             </div>
         </motion.div>
     );

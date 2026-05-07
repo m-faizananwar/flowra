@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { TrendingUp, ShoppingCart } from "lucide-react";
+import { TrendingUp, Layers } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface StatCardProps {
@@ -65,7 +65,7 @@ export function SummaryCards({ totalSaved = 412, totalSpent = 842 }: { totalSave
             <StatCard
                 label="Total Workload"
                 value={totalSpent}
-                icon={ShoppingCart}
+                icon={Layers}
                 iconColor="text-[#FF8A8A]"
                 iconBgColor="bg-[#FF8A8A]/10"
                 badge={{

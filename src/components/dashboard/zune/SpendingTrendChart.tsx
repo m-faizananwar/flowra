@@ -9,13 +9,13 @@ interface SpendingTrendChartProps {
 }
 
 const MOCK_DATA = [
-    { name: "MON", income: 2100, expenses: 1400 },
-    { name: "TUE", income: 1800, expenses: 2200 },
-    { name: "WED", income: 2400, expenses: 1600 },
-    { name: "THU", income: 3100, expenses: 1900 },
-    { name: "FRI", income: 2800, expenses: 2400 },
-    { name: "SAT", income: 1500, expenses: 3100 },
-    { name: "SUN", income: 1200, expenses: 800 },
+    { name: "MON", planned: 21, completed: 14 },
+    { name: "TUE", planned: 18, completed: 22 },
+    { name: "WED", planned: 24, completed: 16 },
+    { name: "THU", planned: 31, completed: 19 },
+    { name: "FRI", planned: 28, completed: 24 },
+    { name: "SAT", planned: 15, completed: 31 },
+    { name: "SUN", planned: 12, completed: 8 },
 ];
 
 export function SpendingTrendChart({ data: liveData }: SpendingTrendChartProps) {
@@ -86,6 +86,7 @@ export function SpendingTrendChart({ data: liveData }: SpendingTrendChartProps) 
                         />
                         <Bar 
                             dataKey="income" 
+                            name="Planned Tasks"
                             fill="#8B5CF6" 
                             radius={[12, 12, 0, 0]} 
                             barSize={32}
@@ -94,6 +95,7 @@ export function SpendingTrendChart({ data: liveData }: SpendingTrendChartProps) 
                         />
                         <Bar 
                             dataKey="expenses" 
+                            name="Completed Tasks"
                             fill="#FF8A8A" 
                             radius={[12, 12, 0, 0]} 
                             barSize={32}

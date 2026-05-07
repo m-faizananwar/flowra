@@ -26,11 +26,9 @@ const EXPENSE_CATEGORIES = [
     { value: "other", label: "Other", icon: Wallet, activeClass: "bg-zinc-400 text-black shadow-[0_0_15px_rgba(161,161,170,0.3)]", iconClass: "bg-zinc-500/10 text-zinc-400" },
 ];
 
-const MOCK_COMMITMENTS = [
-    { id: '1', merchant: 'Oracle Cloud', amount: 1540.00, dueDate: new Date(Date.now() + 86400000 * 2), status: 'pending', isAuto: true },
-    { id: '2', merchant: 'Github Enterprise', amount: 240.00, dueDate: new Date(Date.now() - 86400000), status: 'overdue', isAuto: true },
-    { id: '3', merchant: 'DigitalOcean', amount: 84.50, dueDate: new Date(Date.now() + 86400000 * 5), status: 'pending', isAuto: false },
-    { id: '4', merchant: 'Vercel Pro', amount: 20.00, dueDate: new Date(Date.now() - 86400000 * 10), status: 'paid', isAuto: true },
+const MOCK_ACTIONS = [
+    { id: '1', merchant: 'Risk: High Bug Density', amount: 0, dueDate: new Date(Date.now() + 86400000 * 2), status: 'pending', isAuto: true },
+    { id: '2', merchant: 'Review: Core API', amount: 0, dueDate: new Date(Date.now() - 86400000), status: 'overdue', isAuto: true },
 ];
 
 interface PendingCommitmentsProps {
@@ -38,7 +36,7 @@ interface PendingCommitmentsProps {
 }
 
 export function PendingCommitments({ commitmentsData }: PendingCommitmentsProps) {
-    const [commitments, setCommitments] = useState<any[]>(commitmentsData?.length ? commitmentsData : MOCK_COMMITMENTS);
+    const [commitments, setCommitments] = useState<any[]>(commitmentsData?.length ? commitmentsData : MOCK_ACTIONS);
     const [isLoading, setIsLoading] = useState(false);
     const [suggestion, setSuggestion] = useState<any | null>({
         merchant: "AWS Infrastructure",
@@ -104,9 +102,9 @@ export function PendingCommitments({ commitmentsData }: PendingCommitmentsProps)
                 <div className="flex items-center justify-between">
                     <div>
                         <h3 className="text-xl font-black text-white tracking-tight" style={{ fontFamily: 'Outfit, sans-serif' }}>
-                            Fixed Liabilities
+                            Action Center
                         </h3>
-                        <p className="text-[10px] text-white/40 font-black uppercase tracking-[0.2em]">Monthly Commitments Tracker</p>
+                        <p className="text-[10px] text-white/40 font-black uppercase tracking-[0.2em]">Pending Intelligence Approvals</p>
                     </div>
                     <button 
                         onClick={() => setIsCreating(!isCreating)}
@@ -121,7 +119,7 @@ export function PendingCommitments({ commitmentsData }: PendingCommitmentsProps)
                 
                 <div className="flex flex-col gap-2">
                     <div className="flex items-center justify-between text-[9px] font-black uppercase tracking-widest">
-                        <span className="text-white/40">Monthly Clearance</span>
+                        <span className="text-white/40">Action Clearance</span>
                         <span className="text-[#24FF7C]">
                             {commitments.filter(c => c.status === 'paid').length} / {commitments.length}
                         </span>
@@ -161,10 +159,10 @@ export function PendingCommitments({ commitmentsData }: PendingCommitmentsProps)
                                     <div className="flex items-start justify-between">
                                         <div>
                                             <p className="text-sm font-bold text-white leading-tight">{suggestion.merchant}</p>
-                                            <p className="text-[11px] text-white/50 mt-1 uppercase tracking-wider font-medium">Seen {suggestion.occurrences}x consecutively <br/> around day {suggestion.detectedDay}</p>
+                                            <p className="text-[11px] text-white/50 mt-1 uppercase tracking-wider font-medium">Detected {suggestion.occurrences}x consecutively</p>
                                         </div>
                                         <div className="text-right">
-                                            <p className="text-lg font-black text-white tracking-tighter italic" style={{ fontFamily: 'Outfit, sans-serif' }}>${suggestion.amount}</p>
+                                            <p className="text-lg font-black text-white tracking-tighter italic" style={{ fontFamily: 'Outfit, sans-serif' }}>High Risk</p>
                                         </div>
                                     </div>
 
@@ -244,8 +242,8 @@ export function PendingCommitments({ commitmentsData }: PendingCommitmentsProps)
                                         </div>
 
                                         <div className="text-right relative z-10">
-                                            <p className="text-[15px] font-black tracking-tighter italic text-white" style={{ fontFamily: 'Outfit, sans-serif' }}>
-                                                ${item.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                            <p className="text-[12px] font-black uppercase tracking-widest text-white/50">
+                                                Review
                                             </p>
                                         </div>
                                     </motion.div>
@@ -285,8 +283,8 @@ export function PendingCommitments({ commitmentsData }: PendingCommitmentsProps)
                                         </div>
 
                                         <div className="text-right relative z-10">
-                                            <p className="text-[15px] font-black tracking-tighter italic text-white/40" style={{ fontFamily: 'Outfit, sans-serif' }}>
-                                                ${item.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                            <p className="text-[12px] font-black uppercase tracking-widest text-[#24FF7C]">
+                                                Done
                                             </p>
                                         </div>
                                     </motion.div>
@@ -351,9 +349,9 @@ export function PendingCommitments({ commitmentsData }: PendingCommitmentsProps)
                 
                 <div className="px-5 py-4 bg-white/[0.02] border-t border-white/5 flex items-center justify-between z-20 backdrop-blur-md">
                     <div className="flex flex-col">
-                        <span className="text-[9px] font-black text-white/30 uppercase tracking-widest mb-0.5">Total Unpaid</span>
-                        <span className="text-[14px] font-black text-red-400" style={{ fontFamily: 'Outfit, sans-serif' }}>
-                            ${commitments.filter(c => c.status !== 'paid').reduce((acc, curr) => acc + curr.amount, 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                        <span className="text-[9px] font-black text-white/30 uppercase tracking-widest mb-0.5">Pending Review</span>
+                        <span className="text-[14px] font-black text-white" style={{ fontFamily: 'Outfit, sans-serif' }}>
+                            {commitments.filter(c => c.status !== 'paid').length} Actions
                         </span>
                     </div>
                     <button className="flex items-center gap-1.5 text-[9px] font-black text-white/40 uppercase tracking-widest hover:text-[#24FF7C] transition-colors">

@@ -10,10 +10,10 @@ interface CategoryBreakdownChartProps {
 const DEFAULT_COLORS = ["#A78BFA", "#24FF7C", "#FF8A8A", "#4B5563", "#6366F1", "#EC4899"];
 
 const MOCK_DATA = [
-    { name: "Development", value: 4500 },
-    { name: "Operations", value: 2800 },
-    { name: "Marketing", value: 1500 },
-    { name: "Research", value: 1200 },
+    { name: "Task", value: 450 },
+    { name: "Bug", value: 280 },
+    { name: "Story", value: 150 },
+    { name: "Epic", value: 120 },
 ];
 
 export function CategoryBreakdownChart({ data: liveData }: CategoryBreakdownChartProps) {
@@ -33,7 +33,7 @@ export function CategoryBreakdownChart({ data: liveData }: CategoryBreakdownChar
             className="glass-panel p-6 rounded-[2rem] flex flex-col h-full min-h-[340px]"
         >
             <h3 className="text-xl font-black text-white tracking-tight mb-6" style={{ fontFamily: 'Outfit, sans-serif' }}>
-                 Resource Allocation
+                 Jira Issue Types
             </h3>
 
             <div className="flex-1 relative flex items-center justify-center">
@@ -58,7 +58,7 @@ export function CategoryBreakdownChart({ data: liveData }: CategoryBreakdownChar
                     <span className="text-4xl font-black text-white tracking-tighter" style={{ fontFamily: 'Outfit, sans-serif' }}>
                         {totalValue > 0 ? "100%" : "0%"}
                     </span>
-                    <span className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mt-1">Efficiency</span>
+                    <span className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mt-1">Total Issues</span>
                 </div>
             </div>
 

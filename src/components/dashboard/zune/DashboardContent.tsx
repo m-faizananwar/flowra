@@ -12,7 +12,7 @@ import { ExpenseChart } from "./ExpenseChart";
 import { SpendingTrendChart } from "./SpendingTrendChart";
 import { CategoryBreakdownChart } from "./CategoryBreakdownChart";
 import { SpendingHeatmap } from "./SpendingHeatmap";
-import { PendingCommitments } from "./PendingCommitments";
+import { TeamPerformanceRoster } from "./TeamPerformanceRoster";
 
 export function DashboardContent() {
     const [isLoading, setIsLoading] = useState(true);
@@ -102,14 +102,22 @@ export function DashboardContent() {
                     </div>
                 </div>
 
-                {/* Row 3: Detail Activity */}
+                {/* Row 3: Performance & Action Center */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div className="lg:col-span-3">
+                        <motion.div variants={staggerItem}>
+                            <SpendingHeatmap data={overview?.charts?.heatmap} />
+                        </motion.div>
+                    </div>
+                </div>
+
+                {/* Row 4: Detailed Trends & Activity Feed */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div className="lg:col-span-2">
                         <motion.div variants={staggerItem}>
                             <ExpenseChart data={overview?.charts?.performanceSeries} />
                         </motion.div>
                     </div>
-
                     <div className="lg:col-span-1">
                         <motion.div variants={staggerItem} className="h-full">
                             <RecentTransactions transactions={overview?.feeds?.recentActivity} />
@@ -117,19 +125,12 @@ export function DashboardContent() {
                     </div>
                 </div>
 
-                {/* Row 4: Performance & Pending */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <div className="lg:col-span-2">
-                        <motion.div variants={staggerItem}>
-                            <SpendingHeatmap data={overview?.charts?.heatmap} />
-                        </motion.div>
-                    </div>
-                    <div className="lg:col-span-1">
-                        <motion.div variants={staggerItem} className="h-full">
-                            <PendingCommitments commitmentsData={overview?.feeds?.pendingCommitments} />
-                        </motion.div>
-                    </div>
-                </div>
+                {/* Row 5: Team Performance Radar Roster */}
+                {overview?.performance?.team?.length > 0 && (
+                    <motion.div variants={staggerItem}>
+                        <TeamPerformanceRoster teamPerformance={overview?.performance?.team} />
+                    </motion.div>
+                )}
             </motion.div>
         </PageTransition>
     );

@@ -90,7 +90,7 @@ export async function GET(request) {
         .limit(400),
       serviceClient
         .from('member_evaluations')
-        .select('id, status, total_score, created_at, members(full_name, alias)')
+        .select('id, status, total_score, metric_scores, created_at, members(id, full_name, alias, avatar_url, role)')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(200),
@@ -121,7 +121,7 @@ export async function GET(request) {
     const latestMetrics = activeSprint?.sprint_metrics?.[activeSprint.sprint_metrics.length - 1] || null;
     const jiraIssuesRaw = jiraIssuesRes.data || [];
     const jiraIssues = activeSprint?.jira_sprint_id
-      ? jiraIssuesRaw.filter((i) => i.sprint_jira_id === activeSprint.jira_sprint_id)
+      ? jiraIssuesRaw.filter((i) => String(i.sprint_jira_id) === String(activeSprint.jira_sprint_id))
       : jiraIssuesRaw;
 
     const statusCounts = { done: 0, inReview: 0, blocked: 0, todo: 0 };
@@ -159,18 +159,58 @@ export async function GET(request) {
 
     const performanceSeries = last7Days.map((d) => {
       const key = dateKey(d);
-      const runCount = (analysisRunsRes.data || []).filter((r) => dateKey(r.created_at) === key).length;
-      const approvedEvalAvg = (() => {
-        const dayEvals = (memberEvaluationsRes.data || []).filter((e) => e.status === 'approved' && dateKey(e.created_at) === key);
-        if (!dayEvals.length) return 0;
-        const sum = dayEvals.reduce((acc, e) => acc + Number(e.total_score || 0), 0);
-        return Math.round(sum / dayEvals.length);
-      })();
-      return {
-        name: d.toLocaleDateString('en-US', { weekday: 'short' }),
-        amount: approvedEvalAvg || runCount,
-      };
+      const result = { name: d.toLocaleDateString('en-US', { weekday: 'short' }) };
+      const dayEvals = (memberEvaluationsRes.data || []).filter((e) => e.status === 'approved' && dateKey(e.created_at) === key);
+      
+      const memberSums = {};
+      const memberCounts = {};
+      const memberNames = {};
+      
+      for (const e of dayEvals) {
+        const member = e.members || {};
+        const memberKey = `id:${member.id || 'unknown'}`;
+        if (!memberSums[memberKey]) {
+          memberSums[memberKey] = 0;
+          memberCounts[memberKey] = 0;
+          memberNames[memberKey] = member.full_name || member.alias || 'Unknown';
+        }
+        memberSums[memberKey] += Number(e.total_score || 0);
+        memberCounts[memberKey] += 1;
+      }
+      
+      for (const mId in memberSums) {
+         result[mId] = Math.round(memberSums[mId] / memberCounts[mId]);
+         result[`${mId}_name`] = memberNames[mId];
+      }
+      
+      return result;
     });
+
+    const teamPerformanceMap = new Map();
+    for (const e of memberEvaluationsRes.data || []) {
+      if (e.status !== 'approved') continue;
+      
+      const member = e.members || {};
+      const alias = (member.alias || '').trim().toLowerCase();
+      const fullName = (member.full_name || '').trim().toLowerCase();
+      const role = (member.role || '').trim().toLowerCase();
+      let key = `id:${member.id || 'unknown'}`;
+      if (alias) key = `alias:${alias}|role:${role}`;
+      else if (fullName) key = `name:${fullName}|role:${role}`;
+
+      if (!teamPerformanceMap.has(key) || new Date(e.created_at) > new Date(teamPerformanceMap.get(key).created_at)) {
+        teamPerformanceMap.set(key, {
+          id: member.id,
+          name: member.full_name || member.alias,
+          role: member.role || 'No role',
+          avatar_url: member.avatar_url,
+          score: e.total_score,
+          metrics: (e.metric_scores || []).map((m) => ({ name: m.name, score: m.score })),
+          created_at: e.created_at,
+        });
+      }
+    }
+    const teamPerformance = Array.from(teamPerformanceMap.values()).sort((a, b) => b.score - a.score);
 
     const categoryMap = new Map();
     for (const issue of jiraIssues) {
@@ -204,12 +244,51 @@ export async function GET(request) {
       .slice(0, 8);
 
     const heatDays = buildRecentDays(28);
-    const eventCounts = Object.fromEntries(heatDays.map((d, idx) => [dateKey(d), { day: idx, amount: 0, date: dateKey(d) }]));
+    const eventCounts = Object.fromEntries(heatDays.map((d, idx) => [dateKey(d), { day: idx, amount: 0, date: dateKey(d), scoreSum: 0, evalCount: 0, risks: 0, jiraUpdates: 0 }]));
+    
     for (const event of githubEventsRes.data || []) {
       const key = dateKey(event.occurred_at);
-      if (eventCounts[key]) eventCounts[key].amount += 1;
+      if (eventCounts[key]) {
+        eventCounts[key].amount += 1;
+      }
     }
-    const heatmap = heatDays.map((d) => eventCounts[dateKey(d)]);
+    
+    for (const r of riskAssessmentsRes.data || []) {
+      const key = dateKey(r.created_at);
+      if (eventCounts[key]) {
+        eventCounts[key].risks += 1;
+        eventCounts[key].amount += 1;
+      }
+    }
+    
+    for (const e of memberEvaluationsRes.data || []) {
+      const key = dateKey(e.created_at);
+      if (eventCounts[key]) {
+        eventCounts[key].scoreSum += (e.total_score || 0);
+        eventCounts[key].evalCount += 1;
+        eventCounts[key].amount += 1;
+      }
+    }
+    
+    for (const issue of jiraIssuesRaw || []) {
+      const key = dateKey(issue.updated_at);
+      if (eventCounts[key]) {
+        eventCounts[key].jiraUpdates += 1;
+        eventCounts[key].amount += 1;
+      }
+    }
+    
+    const heatmap = heatDays.map((d) => {
+      const data = eventCounts[dateKey(d)];
+      return {
+        day: data.day,
+        amount: data.amount, // Total interaction density
+        date: data.date,
+        score: data.evalCount > 0 ? Math.round(data.scoreSum / data.evalCount) : 0,
+        risks: data.risks,
+        jiraUpdates: data.jiraUpdates,
+      };
+    });
 
     const pendingCommitments = [
       ...(approvalsRes.data || [])
@@ -254,6 +333,9 @@ export async function GET(request) {
       feeds: {
         recentActivity,
         pendingCommitments,
+      },
+      performance: {
+        team: teamPerformance,
       },
       meta: {
         activeSprintName: activeSprint?.name || null,
