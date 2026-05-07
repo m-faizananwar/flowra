@@ -96,3 +96,4 @@ Flowra evaluates team performance using objective metrics across all roles:
 
 ## 🎯 Vision
 Flowra aims to turn the "Work about Work" (updating tickets, checking status) into a background process, allowing teams to focus on building while the AI handles the overhead of Agile synchronization.
+
