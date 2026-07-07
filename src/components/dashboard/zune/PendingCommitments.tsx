@@ -53,6 +53,7 @@ export function PendingCommitments({ commitmentsData }: PendingCommitmentsProps)
 
     useEffect(() => {
         if (commitmentsData && commitmentsData.length > 0) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setCommitments(commitmentsData);
         }
     }, [commitmentsData]);

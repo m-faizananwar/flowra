@@ -150,7 +150,7 @@ export default function VerifyEmailPage() {
                 Please check <br /><span className="text-indigo-400">your email</span>
             </h1>
             <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "1rem", lineHeight: 1.6 }}>
-                We've sent a synchronization link to your inbox. Please click the link to activate your high-performance workspace.
+                We&apos;ve sent a synchronization link to your inbox. Please click the link to activate your high-performance workspace.
             </p>
           </div>
 
@@ -166,7 +166,7 @@ export default function VerifyEmailPage() {
                     </div>
                 </div>
                 <div style={{ fontSize: "0.8rem", color: "rgba(255,255,255,0.3)", fontStyle: "italic" }}>
-                    "The final step in establishing your neural link for automated Agile orchestration."
+                    &quot;The final step in establishing your neural link for automated Agile orchestration.&quot;
                 </div>
             </div>
 
@@ -188,7 +188,7 @@ export default function VerifyEmailPage() {
             </div>
             
             <p className="text-center" style={{ fontSize: "0.85rem", color: "rgba(255,255,255,0.3)" }}>
-                Didn't get the email? Check your spam folder or contact <a href="mailto:support@flowra.ai" style={{ color: "#818cf8", fontWeight: 600, textDecoration: "none" }}>support@flowra.ai</a>
+                Didn&apos;t get the email? Check your spam folder or contact <a href="mailto:support@flowra.ai" style={{ color: "#818cf8", fontWeight: 600, textDecoration: "none" }}>support@flowra.ai</a>
             </p>
           </div>
         </motion.div>

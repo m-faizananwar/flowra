@@ -329,7 +329,7 @@ export function SlackConnectorModal({ isOpen, onClose, onSuccess, initialData }:
                                                 <p className="text-xs text-white/40 leading-relaxed">
                                                     Open Slack and find the Channel ID in the channel settings. 
                                                     <br/><br/>
-                                                    <span className="text-[#E01E5A] font-bold">Pro Tip:</span> If <code className="text-[10px] bg-white/5 px-1 rounded">/flowra-status</code> doesn't work, register it as a 'Slash Command' in your Slack App Dashboard.
+                                                    <span className="text-[#E01E5A] font-bold">Pro Tip:</span> If <code className="text-[10px] bg-white/5 px-1 rounded">/flowra-status</code> doesn&apos;t work, register it as a &apos;Slash Command&apos; in your Slack App Dashboard.
                                                 </p>
                                             </div>
                                         </div>

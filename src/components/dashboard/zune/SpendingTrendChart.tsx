@@ -23,6 +23,7 @@ export function SpendingTrendChart({ data: liveData }: SpendingTrendChartProps) 
     const chartData = liveData || MOCK_DATA;
 
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setIsMounted(true);
     }, []);
 

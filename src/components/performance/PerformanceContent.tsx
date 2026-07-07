@@ -723,7 +723,7 @@ export function PerformanceContent() {
                                         </div>
                                         {activeEvaluation.summary && (
                                             <p className="text-sm text-white/70 leading-relaxed bg-white/[0.03] p-5 rounded-2xl border border-white/5 italic">
-                                                "{activeEvaluation.summary}"
+                                                &quot;{activeEvaluation.summary}&quot;
                                             </p>
                                         )}
                                     </div>

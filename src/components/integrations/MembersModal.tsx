@@ -337,7 +337,7 @@ export default function MembersModal({ isOpen, onClose, integration }: MembersMo
                     Data Override Protocol
                   </p>
                   <p className="text-[11px] text-white/40 leading-relaxed font-medium">
-                    Since you are linking via <span className="text-violet-400 font-bold uppercase">{showFusionConfirm.service}</span>, that platform's alias and identity data will become the <b>new primary</b> for this Human.
+                    Since you are linking via <span className="text-violet-400 font-bold uppercase">{showFusionConfirm.service}</span>, that platform&apos;s alias and identity data will become the <b>new primary</b> for this Human.
                   </p>
                 </div>
               </div>
