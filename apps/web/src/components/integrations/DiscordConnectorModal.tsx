@@ -72,12 +72,11 @@ export function DiscordConnectorModal({ isOpen, onClose, onSuccess, initialData 
     // Reset state when modal opens
     useEffect(() => {
         if (isOpen) {
-            setStep(initialData ? 3 : 1);
-            setGuildId(initialData?.credentials?.guild_id || "");
+            Promise.resolve().then(() => setGuildId(initialData?.credentials?.guild_id || ""));
             if (initialData?.id) {
-                fetchChannels(initialData.id);
+                Promise.resolve().then(() => fetchChannels(initialData.id));
             } else {
-                setChannels([]);
+                Promise.resolve().then(() => setChannels([]));
             }
         }
     }, [isOpen, initialData]);

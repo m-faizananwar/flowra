@@ -31,15 +31,11 @@ export default function GitHubConnectorModal({ isOpen, onClose, integration: ini
   }, [isOpen]);
 
   useEffect(() => {
-    setIntegrationData(initialData);
-    setStep(initialData ? 3 : 1);
+    Promise.resolve().then(() => {
+      setIntegrationData(initialData);
+      setStep(initialData ? 3 : 1);
+    });
   }, [initialData]);
-
-  useEffect(() => {
-    if (isOpen && integrationData?.credentials?.installation_id) {
-      fetchRepositories();
-    }
-  }, [isOpen, integrationData]);
 
   const fetchRepositories = async () => {
     const activeIntegration = integrationData || initialData;
@@ -63,6 +59,12 @@ export default function GitHubConnectorModal({ isOpen, onClose, integration: ini
       setLoadingRepos(false);
     }
   };
+
+  useEffect(() => {
+    if (isOpen && integrationData?.credentials?.installation_id) {
+      Promise.resolve().then(fetchRepositories);
+    }
+  }, [isOpen, integrationData]);
 
   const handleInstallClick = () => {
     if (!user?.id) {

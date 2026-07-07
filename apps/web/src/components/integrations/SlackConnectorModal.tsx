@@ -30,7 +30,7 @@ interface SlackConnectorModalProps {
 }
 
 export function SlackConnectorModal({ isOpen, onClose, onSuccess, initialData }: SlackConnectorModalProps) {
-    const [step, setStep] = useState(initialData ? 3 : 1);
+    const [step, setStep] = useState(() => initialData ? 3 : 1);
     const [channels, setChannels] = useState<{id: string, name?: string}[]>([]);
     const [newChannelId, setNewChannelId] = useState("");
     const [isConnecting, setIsConnecting] = useState(false);
@@ -82,11 +82,10 @@ export function SlackConnectorModal({ isOpen, onClose, onSuccess, initialData }:
     // Reset state when modal opens
     useEffect(() => {
         if (isOpen) {
-            setStep(initialData ? 3 : 1);
             if (initialData?.id) {
-                fetchChannels(initialData.id);
+                Promise.resolve().then(() => fetchChannels(initialData.id));
             } else {
-                setChannels([]);
+                Promise.resolve().then(() => setChannels([]));
             }
         }
     }, [isOpen, initialData]);

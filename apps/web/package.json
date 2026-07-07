@@ -27,7 +27,6 @@
     "tailwind-merge": "^3.5.0"
   },
   "devDependencies": {
-    "@flowra/config-eslint": "workspace:*",
     "@types/react": "19.2.14",
     "autoprefixer": "^10.5.0",
     "eslint": "^9",

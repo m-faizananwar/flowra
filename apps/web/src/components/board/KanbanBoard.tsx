@@ -99,19 +99,6 @@ export function KanbanBoard() {
     const [isLoading, setIsLoading] = useState(true);
     const [viewMode, setViewMode] = useState<"board" | "list">("board");
 
-    useEffect(() => {
-        fetchData();
-
-        const channel = supabase
-            .channel('jira-board-live')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'jira_issues' }, () => {
-                fetchData();
-            })
-            .subscribe();
-
-        return () => { supabase.removeChannel(channel); };
-    }, []);
-
     const fetchData = async () => {
         try {
             const { data: { user } } = await supabase.auth.getUser();
@@ -142,6 +129,19 @@ export function KanbanBoard() {
             setIsLoading(false);
         }
     };
+
+    useEffect(() => {
+        Promise.resolve().then(fetchData);
+
+        const channel = supabase
+            .channel('jira-board-live')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'jira_issues' }, () => {
+                fetchData();
+            })
+            .subscribe();
+
+        return () => { supabase.removeChannel(channel); };
+    }, []);
 
     /** Filter to ONLY the active sprint's issues using String() coercion to avoid type mismatch */
     const sprintIssues = useMemo(() => {

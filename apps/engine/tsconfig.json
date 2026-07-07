@@ -1,6 +1,7 @@
 {
   "extends": "../../packages/config-typescript/node.json",
   "compilerOptions": {
+    "allowJs": true,
     "rootDir": "src",
     "outDir": "dist",
     "paths": {

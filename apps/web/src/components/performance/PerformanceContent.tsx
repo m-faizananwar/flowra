@@ -240,9 +240,6 @@ export function PerformanceContent() {
         return map;
     }, [dedupedMembers]);
 
-    useEffect(() => { loadData(); }, []);
-    useEffect(() => { if (activeEvaluation) setDraftScores(activeEvaluation.metric_scores || []); }, [activeEvaluation]);
-
     const loadData = async () => {
         setIsLoading(true);
         try {
@@ -270,6 +267,9 @@ export function PerformanceContent() {
         } catch (e: any) { toast.error(e.message); }
         finally { setIsLoading(false); }
     };
+
+    useEffect(() => { Promise.resolve().then(loadData); }, []);
+    useEffect(() => { if (activeEvaluation) Promise.resolve().then(() => setDraftScores(activeEvaluation.metric_scores || [])); }, [activeEvaluation]);
 
     const saveSettings = async () => {
         if (!userId) return;
@@ -556,7 +556,7 @@ export function PerformanceContent() {
                                                     stroke={memberColors[key]}
                                                     strokeWidth={3}
                                                     dot={{ r: 4, fill: memberColors[key], strokeWidth: 2, stroke: "#0F0F12" }}
-                                                    activeDot={{ r: 6, strokeWidth: 0, shadow: "0 0 15px rgba(36,255,124,0.5)" }}
+                                                    activeDot={{ r: 6, strokeWidth: 0 }}
                                                     connectNulls
                                                     animationDuration={1500}
                                                 />

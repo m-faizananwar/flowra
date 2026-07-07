@@ -115,7 +115,7 @@ export function ExpenseChart({ className, data: liveData }: ExpenseChartProps) {
                                     stroke={COLORS[i % COLORS.length]}
                                     strokeWidth={3}
                                     dot={{ r: 4, fill: COLORS[i % COLORS.length], strokeWidth: 2, stroke: "#0F0F12" }}
-                                    activeDot={{ r: 6, strokeWidth: 0, shadow: "0 0 15px rgba(36,255,124,0.5)" }}
+                                    activeDot={{ r: 6, strokeWidth: 0 }}
                                     connectNulls
                                     animationDuration={1500}
                                 />

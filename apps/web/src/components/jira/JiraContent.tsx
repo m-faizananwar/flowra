@@ -43,10 +43,6 @@ export function JiraContent() {
     const [settings, setSettings] = useState<any>(DEFAULT_SETTING);
     const [userId, setUserId] = useState<string | null>(null);
 
-    useEffect(() => {
-        loadData();
-    }, []);
-
     const loadData = async () => {
         setIsLoading(true);
         try {
@@ -84,6 +80,10 @@ export function JiraContent() {
             setIsLoading(false);
         }
     };
+
+    useEffect(() => {
+        Promise.resolve().then(loadData);
+    }, []);
 
     const updateSettings = async () => {
         if (!userId) return;

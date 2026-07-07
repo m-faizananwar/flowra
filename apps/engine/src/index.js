@@ -1,10 +1,16 @@
 require('dotenv').config();
 const express = require('express');
+const { Octokit } = require('octokit');
+const { createAppAuth } = require('@octokit/auth-app');
 const logger = require('./services/lib/logger');
 const integrationsSync = require('./services/integrations-sync');
 const botManager = require('./services/bots');
 const githubSync = require('./services/github-sync');
+const analysisRunner = require('./services/intelligence/analysis-runner');
 const intelligenceScheduler = require('./services/intelligence/scheduler-service');
+const approvalWatcher = require('./services/intelligence/approval-watcher');
+const JiraAPI = require('./services/lib/jira-api');
+const supabase = require('./services/lib/supabase');
 
 const app = express();
 const PORT = process.env.PORT || 3005;
@@ -89,7 +95,7 @@ async function bootstrap() {
                 }
 
                 if (analysisType === 'provision_metrics') {
-                    const metrics = await require('./services/intelligence/analysis-runner').ensureMetrics(userId);
+                    const metrics = await analysisRunner.ensureMetrics(userId);
                     return res.status(200).json({ ok: true, metrics_count: metrics.length });
                 }
 
@@ -167,11 +173,7 @@ async function bootstrap() {
                     return res.status(400).json({ error: 'user_id, issue_key, and target_status are required' });
                 }
 
-                // Initialize Jira API
-                const JiraAPI = require('./services/lib/jira-api');
-                
                 // Fetch user's Jira integration
-                const supabase = require('./services/lib/supabase');
                 const { data: integration, error } = await supabase
                     .from('integrations')
                     .select('*')
@@ -222,8 +224,6 @@ async function bootstrap() {
         // Start Services
         await integrationsSync.start();
         intelligenceScheduler.start();
-
-        const approvalWatcher = require('./services/intelligence/approval-watcher');
         approvalWatcher.start();
 
         // Start Web Server

@@ -10,7 +10,7 @@ const WEEKS = 4;
 const DAYS_PER_WEEK = 7;
 const TOTAL_DAYS = WEEKS * DAYS_PER_WEEK;
 
-const spendData = Array.from({ length: TOTAL_DAYS }, (_, i) => {
+const spendData: { day: number; amount: number; score?: number; risks?: number; jiraUpdates?: number }[] = Array.from({ length: TOTAL_DAYS }, (_, i) => {
     const seed = i + 1;
     const pseudoRandom = Math.abs(Math.sin(seed * 12.9898) * 43758.5453) % 1;
     const amount = pseudoRandom < 0.2 ? 0 : Math.floor(pseudoRandom * 800);

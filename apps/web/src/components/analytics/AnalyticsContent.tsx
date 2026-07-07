@@ -55,7 +55,7 @@ export function AnalyticsContent() {
   };
 
   useEffect(() => {
-    fetchData();
+    Promise.resolve().then(fetchData);
 
     // Set up Realtime listener for live updates
     const supabase = createClient(

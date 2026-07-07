@@ -28,8 +28,8 @@ interface TelegramConnectorModalProps {
 }
 
 export function TelegramConnectorModal({ isOpen, onClose, onSuccess, initialData }: TelegramConnectorModalProps) {
-    const [step, setStep] = useState(initialData ? 3 : 1);
-    const [chatId, setChatId] = useState(initialData?.credentials?.chat_id || "");
+    const [step, setStep] = useState(() => initialData ? 3 : 1);
+    const [chatId, setChatId] = useState(() => initialData?.credentials?.chat_id || "");
     const [isConnecting, setIsConnecting] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -37,8 +37,7 @@ export function TelegramConnectorModal({ isOpen, onClose, onSuccess, initialData
     // Reset state when modal opens
     useEffect(() => {
         if (isOpen) {
-            setStep(initialData ? 3 : 1);
-            setChatId(initialData?.credentials?.chat_id || "");
+            Promise.resolve().then(() => setChatId(initialData?.credentials?.chat_id || ""));
         }
     }, [isOpen, initialData]);
 

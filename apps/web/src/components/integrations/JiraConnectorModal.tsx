@@ -30,22 +30,20 @@ interface JiraConnectorModalProps {
 }
 
 export function JiraConnectorModal({ isOpen, onClose, onSuccess, initialData }: JiraConnectorModalProps) {
-    const [step, setStep] = useState(1);
+    const [step, setStep] = useState(() => initialData ? 3 : 1);
     const [isConnecting, setIsConnecting] = useState(false);
     const [testCommand, setTestCommand] = useState("");
     const [isTesting, setIsTesting] = useState(false);
     const [testResult, setTestResult] = useState<any>(null);
-    const [connectedSite, setConnectedSite] = useState<any>(null);
+    const [connectedSite, setConnectedSite] = useState(() => initialData?.credentials || null);
 
     // Reset state when modal opens
     useEffect(() => {
         if (isOpen) {
             if (initialData) {
-                setStep(3);
-                setConnectedSite(initialData.credentials);
+                Promise.resolve().then(() => setConnectedSite(initialData.credentials));
             } else {
-                setStep(1);
-                setConnectedSite(null);
+                Promise.resolve().then(() => setConnectedSite(null));
             }
         }
     }, [isOpen, initialData]);

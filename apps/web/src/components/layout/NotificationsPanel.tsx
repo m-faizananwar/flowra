@@ -37,21 +37,6 @@ export function NotificationsPanel() {
 
     const unreadCount = notifications.filter((n) => !n.is_read).length;
 
-    useEffect(() => {
-        loadNotifications();
-    }, []);
-
-    useEffect(() => {
-        if (!open) return;
-        const handleClick = (e: MouseEvent) => {
-            if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
-                setOpen(false);
-            }
-        };
-        document.addEventListener("mousedown", handleClick);
-        return () => document.removeEventListener("mousedown", handleClick);
-    }, [open]);
-
     const loadNotifications = async () => {
         setLoading(true);
         try {
@@ -68,6 +53,21 @@ export function NotificationsPanel() {
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        Promise.resolve().then(loadNotifications);
+    }, []);
+
+    useEffect(() => {
+        if (!open) return;
+        const handleClick = (e: MouseEvent) => {
+            if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
+                setOpen(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClick);
+        return () => document.removeEventListener("mousedown", handleClick);
+    }, [open]);
 
     const markAsRead = async (id: string) => {
         await supabase
@@ -207,3 +207,4 @@ export function NotificationsPanel() {
         </div>
     );
 }
+

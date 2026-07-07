@@ -136,7 +136,7 @@ export function OnboardingCanvas({ currentStep, formData, renderStepContent }) {
         positionForm(currentStep, true);
         panToStep(currentStep, true);
         animateTrail(currentStep, true);
-        setFormReady(true);
+        Promise.resolve().then(() => setFormReady(true));
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -165,7 +165,7 @@ export function OnboardingCanvas({ currentStep, formData, renderStepContent }) {
                 </svg>
 
                 {STEP_MARKERS.map((marker, i) => (
-                    <div key={i} ref={el => markerRefs.current[i] = el} className="absolute" style={{ left: marker.x, top: marker.y, transform: "translate(-50%, 0)" }}>
+                    <div key={i} ref={el => { markerRefs.current[i] = el; }} className="absolute" style={{ left: marker.x, top: marker.y, transform: "translate(-50%, 0)" }}>
                         {i < currentStep && <GhostSummary step={i} formData={formData} />}
                         {i === currentStep && <div className="w-2 h-2 rounded-full bg-indigo-500/20 mx-auto" />}
                         {i > currentStep && (

@@ -8,6 +8,8 @@ import { supabase } from '@/lib/supabase';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
+const WORKSPACE_ROLES = ["Admin", "Developer", "Viewer", "Contributor", "Manager"];
+
 interface MembersModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -65,8 +67,62 @@ export default function MembersModal({ isOpen, onClose, integration }: MembersMo
     service: string;
   } | null>(null);
 
+  const fetchAllData = async () => {
+    setLoading(true);
+    try {
+      const { data: masterRows } = await supabase
+        .from("members")
+        .select("*")
+        .eq("user_id", integration.user_id);
+
+      const memberIds = (masterRows || []).map(m => m.id);
+
+      const { data: profiles } = await supabase
+        .from("integration_members")
+        .select("*, integrations!inner(service_name)")
+        .in("member_id", memberIds);
+
+      const grouped: Record<string, any[]> = { github: [], discord: [], slack: [], telegram: [] };
+      
+      const { data: unlinkedProfiles } = await supabase
+        .from("integration_members")
+        .select("*, integrations!inner(service_name, user_id)")
+        .is("member_id", null)
+        .eq("integrations.user_id", integration.user_id);
+
+      [...(profiles || []), ...(unlinkedProfiles || [])].forEach(p => {
+        const serviceName = p.integrations?.service_name;
+        if (!p || !serviceName) return;
+        const svc = serviceName.toLowerCase();
+        if (!grouped[svc]) grouped[svc] = [];
+        if (!grouped[svc].find(gp => gp.id === p.id)) {
+          grouped[svc].push(p);
+        }
+      });
+      setIntegrationProfiles(grouped);
+
+      const rowsWithLinks = (masterRows || []).map(row => {
+        const links: Record<string, any> = {};
+        profiles?.forEach(p => {
+          const serviceName = p.integrations?.service_name || p.service_name;
+          if (p.member_id === row.id && serviceName) {
+            links[serviceName.toLowerCase()] = p;
+          }
+        });
+        return { ...row, links };
+      });
+
+      setMembers(rowsWithLinks);
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to load team data");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    if (isOpen) fetchAllData();
+    if (isOpen) Promise.resolve().then(fetchAllData);
   }, [isOpen]);
 
   const handleStartEdit = (member: any) => {
@@ -170,64 +226,6 @@ export default function MembersModal({ isOpen, onClose, integration }: MembersMo
       setSaving(null);
     }
   };
-
-  const fetchAllData = async () => {
-    setLoading(true);
-    try {
-      const { data: masterRows } = await supabase
-        .from("members")
-        .select("*")
-        .eq("user_id", integration.user_id);
-
-      const memberIds = (masterRows || []).map(m => m.id);
-
-      // Identity-First Linking: Fetch all platform profiles linked to these members
-      const { data: profiles } = await supabase
-        .from("integration_members")
-        .select("*, integrations!inner(service_name)")
-        .in("member_id", memberIds);
-
-      const grouped: Record<string, any[]> = { github: [], discord: [], slack: [], telegram: [] };
-      
-      // Also fetch unlinked profiles for ALL integrations belonging to this user to allow cross-linking
-      const { data: unlinkedProfiles } = await supabase
-        .from("integration_members")
-        .select("*, integrations!inner(service_name, user_id)")
-        .is("member_id", null)
-        .eq("integrations.user_id", integration.user_id);
-
-      [...(profiles || []), ...(unlinkedProfiles || [])].forEach(p => {
-        const serviceName = p.integrations?.service_name;
-        if (!p || !serviceName) return;
-        const svc = serviceName.toLowerCase();
-        if (!grouped[svc]) grouped[svc] = [];
-        // Avoid duplicates and ensure we only show profiles for the correct service
-        if (!grouped[svc].find(gp => gp.id === p.id)) {
-          grouped[svc].push(p);
-        }
-      });
-      setIntegrationProfiles(grouped);
-
-      const rowsWithLinks = (masterRows || []).map(row => {
-        const links: Record<string, any> = {};
-        profiles?.forEach(p => {
-          const serviceName = p.integrations?.service_name || p.service_name;
-          if (p.member_id === row.id && serviceName) {
-            links[serviceName.toLowerCase()] = p;
-          }
-        });
-        return { ...row, links };
-      });
-
-      setMembers(rowsWithLinks);
-    } catch (err) {
-      console.error(err);
-      toast.error("Failed to load team data");
-    } finally {
-      setLoading(false);
-    }
-  };
-
 
   const handleRemoveIdentity = async (id: string) => {
     try {
@@ -376,7 +374,7 @@ export default function MembersModal({ isOpen, onClose, integration }: MembersMo
                   Go Back
                 </button>
                 <button 
-                  onClick={handleApplyPendingChanges}
+                  onClick={() => handleApplyPendingChanges()}
                   className="flex-1 px-4 py-3 bg-emerald-500 hover:bg-emerald-600 rounded-xl text-sm font-bold text-white transition-all shadow-lg shadow-emerald-500/20"
                 >
                   {saving ? "Saving..." : "Confirm Save"}
