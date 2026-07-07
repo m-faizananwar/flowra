@@ -1,38 +1,20 @@
 {
-  "name": "flowra-app",
-  "version": "0.1.0",
+  "name": "flowra",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "eslint",
-    "test": "node --test \"test/**/*.test.cjs\""
-  },
-  "dependencies": {
-    "@paper-design/shaders": "^0.0.72",
-    "@supabase/supabase-js": "^2.104.1",
-    "clsx": "^2.1.1",
-    "date-fns": "^4.1.0",
-    "framer-motion": "^12.38.0",
-    "groq-sdk": "^1.1.2",
-    "gsap": "^3.14.2",
-    "lucide-react": "^0.562.0",
-    "next": "16.2.2",
-    "react": "19.2.4",
-    "react-dom": "19.2.4",
-    "recharts": "^3.8.1",
-    "sonner": "^2.0.7",
-    "tailwind-merge": "^3.5.0"
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "test": "turbo test",
+    "clean": "turbo clean && rm -rf node_modules"
   },
   "devDependencies": {
-    "@types/react": "19.2.14",
-    "autoprefixer": "^10.5.0",
-    "eslint": "^9",
-    "eslint-config-next": "16.2.2",
-    "postcss": "^8.5.10",
-    "tailwindcss": "^3.4.17",
-    "tailwindcss-animate": "^1.0.7",
-    "typescript": "6.0.3"
-  }
+    "turbo": "^2.10.4"
+  },
+  "engines": {
+    "node": ">=20",
+    "pnpm": ">=10"
+  },
+  "packageManager": "pnpm@10.32.1"
 }

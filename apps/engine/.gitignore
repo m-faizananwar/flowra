@@ -1,0 +1,26 @@
+# Engine build output
+dist/
+
+# Dependencies
+node_modules/
+
+# Environment variables
+.env
+.env.local
+
+# Logs
+logs/
+*.log
+
+# Debug / scratch
+debug_db.js
+jira_full_audit.txt
+scratch/
+
+# Keys
+*.key
+*.pem
+*.crypto
+
+# OS
+.DS_Store
