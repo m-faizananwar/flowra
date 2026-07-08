@@ -1,0 +1,6 @@
+1:"$Sreact.fragment"
+2:I[7966,["/_next/static/chunks/0hisjw6u8md-z.js","/_next/static/chunks/0x-55memdehan.js"],"ViewportBoundary"]
+3:I[7966,["/_next/static/chunks/0hisjw6u8md-z.js","/_next/static/chunks/0x-55memdehan.js"],"MetadataBoundary"]
+4:"$Sreact.suspense"
+5:I[33278,["/_next/static/chunks/0hisjw6u8md-z.js","/_next/static/chunks/0x-55memdehan.js"],"IconMark"]
+0:{"rsc":["$","$1","h",{"children":[null,["$","$L2",null,{"children":[["$","meta","0",{"charSet":"utf-8"}],["$","meta","1",{"name":"viewport","content":"width=device-width, initial-scale=1"}]]}],["$","div",null,{"hidden":true,"children":["$","$L3",null,{"children":["$","$4",null,{"name":"Next.Metadata","children":[["$","title","0",{"children":"Flowra — AI-Powered Agile Orchestration Platform"}],["$","meta","1",{"name":"description","content":"Flowra automates your entire Agile workflow. AI agents monitor commits, PRs, and team chat to keep Jira perfectly synced — so your team can focus on building."}],["$","link","2",{"rel":"shortcut icon","href":"/icon.svg"}],["$","link","3",{"rel":"icon","href":"/icon.svg","type":"image/svg+xml"}],["$","link","4",{"rel":"icon","href":"/favicon.ico","sizes":"any"}],["$","link","5",{"rel":"apple-touch-icon","href":"/icon.svg"}],["$","$L5","6",{}]]}]}]}],null]}],"isPartial":false,"staleTime":300,"varyParams":null,"buildId":"AXXC2kQEYp6H3eILMvpMf"}

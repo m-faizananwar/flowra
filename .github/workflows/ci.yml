@@ -1,0 +1,69 @@
+name: CI
+
+on:
+  push:
+    branches: [main, staging, production]
+  pull_request:
+    branches: [main, staging, production]
+
+env:
+  PNPM_VERSION: 10.32.1
+  NODE_VERSION: 22
+
+jobs:
+  web:
+    name: Web (Next.js)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+        working-directory: .
+      - run: pnpm --filter @flowra/web lint
+        name: Lint
+        continue-on-error: true
+      - run: pnpm --filter @flowra/web build
+        name: Build
+
+  engine:
+    name: Engine (Express)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/engine
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+        working-directory: .
+      - run: pnpm --filter @flowra/engine build
+        name: Build (tsc)
+      - run: pnpm --filter @flowra/engine test
+        name: Unit tests
+        continue-on-error: true
+
+  docker:
+    name: Docker Build
+    runs-on: ubuntu-latest
+    needs: [web, engine]
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker compose build
+        working-directory: apps/engine

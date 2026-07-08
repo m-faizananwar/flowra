@@ -19,6 +19,8 @@ node_modules/
 dist/
 build/
 out/
+.vercel/output/
+.vercel/node/
 
 # Turbo
 .turbo/
