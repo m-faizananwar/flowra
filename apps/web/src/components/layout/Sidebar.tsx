@@ -2,6 +2,7 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import {
     PieChart,
     WalletCards,
@@ -68,6 +69,7 @@ export function Sidebar({
     const pathname = usePathname();
     const router = useRouter();
     const [userData, setUserData] = useState<{ email?: string; name?: string }>({});
+    const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
     const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
 
     const handleLogout = async () => {
@@ -85,6 +87,14 @@ export function Sidebar({
                     email: user.email,
                     name: user.user_metadata?.full_name || user.email?.split('@')[0]
                 });
+                const { data: member } = await supabase
+                    .from("members")
+                    .select("avatar_url")
+                    .eq("user_id", user.id)
+                    .maybeSingle();
+                if (member?.avatar_url) {
+                    setAvatarUrl(member.avatar_url);
+                }
             }
         };
         fetchUser();
@@ -111,8 +121,12 @@ export function Sidebar({
                             <div className="flex items-center gap-3 min-w-0 flex-1">
                                 <div className="relative shrink-0">
                                     <div className="w-11 h-11 rounded-full border-2 border-white/10 p-0.5 overflow-hidden">
-                                        <div className="w-full h-full rounded-full bg-gradient-to-br from-[#10B981] to-[#3B82F6] flex items-center justify-center shadow-inner">
-                                            <UserCircle className="w-7 h-7 text-white/80" />
+                                        <div className="w-full h-full rounded-full bg-gradient-to-br from-[#10B981] to-[#3B82F6] flex items-center justify-center shadow-inner overflow-hidden">
+                                            {avatarUrl ? (
+                                                <Image src={avatarUrl} alt="" width={44} height={44} className="w-full h-full object-cover" />
+                                            ) : (
+                                                <UserCircle className="w-7 h-7 text-white/80" />
+                                            )}
                                         </div>
                                     </div>
                                     {!isCollapsed && (
