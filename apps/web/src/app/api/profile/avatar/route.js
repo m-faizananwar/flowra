@@ -1,6 +1,37 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 
+export async function GET(request) {
+  const authHeader = request.headers.get('authorization') || '';
+
+  const userClient = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    { global: { headers: { Authorization: authHeader } } }
+  );
+
+  const { data: { user }, error: userError } = await userClient.auth.getUser();
+  if (userError || !user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const adminClient = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.SUPABASE_SERVICE_ROLE_KEY
+  );
+
+  const { data: member } = await adminClient
+    .from('members')
+    .select('id, avatar_url')
+    .eq('user_id', user.id)
+    .maybeSingle();
+
+  return NextResponse.json({
+    avatar_url: member?.avatar_url || null,
+    member_id: member?.id || null,
+  });
+}
+
 export async function POST(request) {
   const authHeader = request.headers.get('authorization') || '';
 

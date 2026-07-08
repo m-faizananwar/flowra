@@ -45,15 +45,16 @@ export default function SettingsPage() {
                     display_name: user.user_metadata?.display_name || "Lead Architect"
                 });
 
-                const { data: member } = await supabase
-                    .from("members")
-                    .select("id, avatar_url")
-                    .eq("user_id", user.id)
-                    .maybeSingle();
-
-                if (member) {
-                    setMemberId(member.id);
-                    setAvatarUrl(member.avatar_url);
+                const { data: { session } } = await supabase.auth.getSession();
+                if (session) {
+                    const res = await fetch("/api/profile/avatar", {
+                        headers: { Authorization: `Bearer ${session.access_token}` },
+                    });
+                    const data = await res.json();
+                    if (res.ok) {
+                        setMemberId(data.member_id);
+                        setAvatarUrl(data.avatar_url);
+                    }
                 }
             }
         };
@@ -102,6 +103,7 @@ export default function SettingsPage() {
             if (!res.ok) throw new Error(data.error);
 
             setAvatarUrl(data.avatar_url);
+            setMemberId(data.member_id || memberId);
             setPreview(null);
             if (fileInput) fileInput.value = "";
         } catch (err) {
