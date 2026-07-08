@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "start": "bash start-dev.sh",
     "dev": "turbo dev",
     "build": "turbo build",
     "lint": "turbo lint",
