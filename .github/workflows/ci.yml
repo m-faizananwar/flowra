@@ -67,3 +67,24 @@ jobs:
       - uses: actions/checkout@v4
       - run: docker compose build
         working-directory: apps/engine
+
+  deploy:
+    name: Deploy Engine (VPS)
+    runs-on: ubuntu-latest
+    needs: [docker]
+    if: github.ref == 'refs/heads/production'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.2.1
+        with:
+          host: 147.224.208.246
+          username: ubuntu
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            cd /home/ubuntu/flowra
+            git pull origin production
+            sudo docker compose -f apps/engine/docker-compose.yml build
+            sudo docker compose -f apps/engine/docker-compose.yml down
+            sudo docker compose -f apps/engine/docker-compose.yml up -d
+            sudo docker image prune -f
