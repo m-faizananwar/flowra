@@ -65,7 +65,7 @@ export function TeamPerformanceRoster({ teamPerformance = [] }: { teamPerformanc
                             <div className="flex items-center gap-4">
                                 <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0 overflow-hidden">
                                     {member.avatar_url ? (
-                                        <Image src={member.avatar_url} alt="" className="w-full h-full object-cover" unoptimized />
+                                        <Image src={member.avatar_url} alt="" className="w-full h-full object-cover" width={48} height={48} unoptimized />
                                     ) : (
                                         <UserCircle className="w-6 h-6 text-white/20" />
                                     )}

@@ -590,7 +590,7 @@ export function PerformanceContent() {
                                         <div key={member.id} className="flex flex-col gap-3 p-4 rounded-2xl bg-white/[0.02] border border-white/[0.04] hover:bg-white/[0.05] transition-all">
                                             <div className="flex items-center gap-3">
                                                 <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0 overflow-hidden">
-                                                    {member.avatar_url ? <Image src={member.avatar_url} alt="" className="w-full h-full object-cover" unoptimized /> : <UserCircle className="w-5 h-5 text-white/20" />}
+                                                    {member.avatar_url ? <Image src={member.avatar_url} alt="" className="w-full h-full object-cover" width={40} height={40} unoptimized /> : <UserCircle className="w-5 h-5 text-white/20" />}
                                                 </div>
                                                 <div className="flex-1 min-w-0">
                                                     <p className="text-sm font-black text-white truncate">{member.full_name || member.alias}</p>
@@ -659,7 +659,7 @@ export function PerformanceContent() {
                                     <div className="flex items-center justify-between gap-3 mb-3">
                                         <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center overflow-hidden">
                                             {item.members?.avatar_url ? (
-                                                <Image src={item.members.avatar_url} className="w-full h-full object-cover" alt="" unoptimized />
+                                                <Image src={item.members.avatar_url} className="w-full h-full object-cover" alt="" width={40} height={40} unoptimized />
                                             ) : (
                                                 <UserCircle className="w-6 h-6 text-white/20" />
                                             )}
@@ -986,7 +986,7 @@ export function PerformanceContent() {
                                                 <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-white/10 to-transparent p-[1px]">
                                                     <div className="w-full h-full rounded-2xl bg-[#090909] flex items-center justify-center overflow-hidden">
                                                         {member.avatar_url ? (
-                                                            <Image src={member.avatar_url} alt="" className="w-full h-full object-cover" unoptimized />
+                                                            <Image src={member.avatar_url} alt="" className="w-full h-full object-cover" width={48} height={48} unoptimized />
                                                         ) : (
                                                             <UserCircle className="w-5 h-5 text-white/20" />
                                                         )}

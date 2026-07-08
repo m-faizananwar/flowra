@@ -88,7 +88,7 @@ export function PendingEvaluationsWidget({
                                         src={activeEvaluation.members.avatar_url}
                                         alt=""
                                         className="w-14 h-14 rounded-xl object-cover ring-2 ring-white/10"
-                                        unoptimized
+                                        width={56} height={56} unoptimized
                                     />
                                 ) : (
                                     <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#24FF7C]/20 to-[#24FF7C]/5 border border-white/10 flex items-center justify-center">

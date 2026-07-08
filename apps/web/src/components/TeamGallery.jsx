@@ -101,6 +101,7 @@ const TeamGallery = () => {
           <Image 
             src={member.avatar} 
             alt={member.name} 
+            width={48} height={48}
             unoptimized
           />
         </a>

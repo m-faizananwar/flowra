@@ -239,7 +239,7 @@ export function IntegrationsContent() {
                                                 // Invert white logos only when the background turns white
                                                 ["github"].includes(app.id) && (isConnected ? "invert" : "group-hover:invert")
                                             )} 
-                                            unoptimized
+                                            width={28} height={28} unoptimized
                                         />
                                     </div>
                                     <div className="flex items-center gap-3">
