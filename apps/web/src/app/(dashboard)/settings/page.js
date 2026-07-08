@@ -55,7 +55,7 @@ export default function SettingsPage() {
                     .maybeSingle();
 
                 if (error) {
-                    console.error("Failed to fetch member:", error);
+                    console.error("Failed to fetch member:", JSON.stringify(error));
                 }
 
                 if (member) {
