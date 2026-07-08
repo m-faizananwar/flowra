@@ -2,6 +2,13 @@
   "name": "flowra",
   "version": "1.0.0",
   "private": true,
+  "license": "MIT",
+  "description": "AI-driven Agile orchestration — listens to your team, verifies work against GitHub, and keeps Jira honest with an approval-first workflow.",
+  "homepage": "https://flowra.m-faizananwar.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/m-faizananwar/flowra.git"
+  },
   "scripts": {
     "start": "bash start-dev.sh",
     "dev": "turbo dev",
