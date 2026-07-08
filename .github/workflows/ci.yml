@@ -62,7 +62,9 @@ jobs:
   docker:
     name: Docker Build
     runs-on: ubuntu-latest
-    needs: [web, engine]
+    # Engine image only — the web frontend is built & deployed by Vercel,
+    # so the VPS deploy must not be gated on the web build.
+    needs: [engine]
     steps:
       - uses: actions/checkout@v4
       - run: docker compose build
