@@ -18,7 +18,7 @@ ON storage.objects FOR INSERT
 TO authenticated
 WITH CHECK (
     bucket_id = 'avatars' AND
-    storage.foldername(name)[1] = auth.uid()::text
+    name LIKE (auth.uid()::text || '/%')
 );
 
 -- 3. Allow authenticated users to update their own avatar
@@ -27,7 +27,7 @@ ON storage.objects FOR UPDATE
 TO authenticated
 USING (
     bucket_id = 'avatars' AND
-    storage.foldername(name)[1] = auth.uid()::text
+    name LIKE (auth.uid()::text || '/%')
 );
 
 -- 4. Allow authenticated users to delete their own avatar
@@ -36,7 +36,7 @@ ON storage.objects FOR DELETE
 TO authenticated
 USING (
     bucket_id = 'avatars' AND
-    storage.foldername(name)[1] = auth.uid()::text
+    name LIKE (auth.uid()::text || '/%')
 );
 
 -- 5. Public read access (avatars are public)
