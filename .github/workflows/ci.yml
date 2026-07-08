@@ -34,6 +34,15 @@ jobs:
         continue-on-error: true
       - run: pnpm --filter @flowra/web build
         name: Build
+        env:
+          # Public keys (shipped in the browser bundle) — real values via secrets.
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          # Build-time placeholder only: API routes construct the service-role
+          # client at module scope, so createClient needs a non-empty key to not
+          # throw during page-data collection. No authenticated calls run at build,
+          # so the real service-role key is intentionally NOT exposed to CI.
+          SUPABASE_SERVICE_ROLE_KEY: build-time-placeholder
 
   engine:
     name: Engine (Express)
