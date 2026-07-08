@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   XCircle, Github, ExternalLink, Zap, 
   Loader2, GitPullRequest, 
@@ -37,7 +37,7 @@ export default function GitHubConnectorModal({ isOpen, onClose, integration: ini
     });
   }, [initialData]);
 
-  const fetchRepositories = async () => {
+  const fetchRepositories = useCallback(async () => {
     const activeIntegration = integrationData || initialData;
     if (!activeIntegration?.id) return;
 
@@ -58,13 +58,13 @@ export default function GitHubConnectorModal({ isOpen, onClose, integration: ini
     } finally {
       setLoadingRepos(false);
     }
-  };
+  }, [integrationData, initialData]);
 
   useEffect(() => {
     if (isOpen && integrationData?.credentials?.installation_id) {
       Promise.resolve().then(fetchRepositories);
     }
-  }, [isOpen, integrationData]);
+  }, [isOpen, integrationData, fetchRepositories]);
 
   const handleInstallClick = () => {
     if (!user?.id) {

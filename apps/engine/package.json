@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "description": "Flowra connectivity engine — integrations, bots, webhooks, and AI intelligence",
   "private": true,
-  "main": "src/index.js",
+  "main": "src/index.ts",
   "scripts": {
-    "dev": "nodemon --watch src --ext js src/index.js",
+    "dev": "tsc && tsc --watch & node --watch dist/index.js",
     "build": "tsc",
     "start": "node dist/index.js",
     "lint": "echo 'No eslint config for engine yet'",
@@ -34,7 +34,7 @@
     "@types/lodash": "^4.17.16",
     "@types/node": "^22.0.0",
     "@types/node-telegram-bot-api": "^0.64.7",
-    "nodemon": "^3.1.0",
+    "tsx": "^4.23.0",
     "typescript": "^5.8.3"
   }
 }

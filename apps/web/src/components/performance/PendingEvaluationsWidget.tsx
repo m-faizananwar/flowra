@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { motion } from "framer-motion";
 import { CheckCircle2, Save, Trophy, UserCircle, History, ChevronDown } from "lucide-react";
 import { staggerItem } from "@/components/animations/PageTransition";
@@ -83,10 +84,11 @@ export function PendingEvaluationsWidget({
                         <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
                             <div className="flex items-center gap-4">
                                 {activeEvaluation.members?.avatar_url ? (
-                                    <img
+                                    <Image
                                         src={activeEvaluation.members.avatar_url}
                                         alt=""
                                         className="w-14 h-14 rounded-xl object-cover ring-2 ring-white/10"
+                                        unoptimized
                                     />
                                 ) : (
                                     <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#24FF7C]/20 to-[#24FF7C]/5 border border-white/10 flex items-center justify-center">

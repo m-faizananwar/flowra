@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
     X, 
@@ -37,7 +37,7 @@ export function DiscordConnectorModal({ isOpen, onClose, onSuccess, initialData 
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [isLoadingChannels, setIsLoadingChannels] = useState(false);
 
-    const fetchChannels = async (integrationId: string) => {
+    const fetchChannels = useCallback(async (integrationId: string) => {
         setIsLoadingChannels(true);
         try {
             const { data, error } = await supabase
@@ -50,13 +50,11 @@ export function DiscordConnectorModal({ isOpen, onClose, onSuccess, initialData 
             if (data && data.length > 0) {
                 setChannels(data.map(c => ({ id: c.external_id, name: c.name })));
             } else if (initialData?.credentials?.channels) {
-                // Fallback to legacy credentials format if sub-table is empty
                 setChannels(initialData.credentials.channels.map((c: any) => ({
                     id: typeof c === 'string' ? c : (c.id || c.external_id),
                     name: typeof c === 'string' ? "Recovered Channel" : (c.name || "Recovered Channel")
                 })));
             } else if (initialData?.credentials?.channel_ids) {
-                // Fallback to array of IDs
                 setChannels(initialData.credentials.channel_ids.map((id: string) => ({
                     id,
                     name: "Recovered Channel"
@@ -67,7 +65,7 @@ export function DiscordConnectorModal({ isOpen, onClose, onSuccess, initialData 
         } finally {
             setIsLoadingChannels(false);
         }
-    };
+    }, [initialData]);
 
     // Reset state when modal opens
     useEffect(() => {
@@ -79,7 +77,7 @@ export function DiscordConnectorModal({ isOpen, onClose, onSuccess, initialData 
                 Promise.resolve().then(() => setChannels([]));
             }
         }
-    }, [isOpen, initialData]);
+    }, [isOpen, initialData, fetchChannels]);
 
     const addChannel = () => {
         if (!newChannelId) return;

@@ -68,7 +68,7 @@ export function JiraConnectorModal({ isOpen, onClose, onSuccess, initialData }: 
             }, 3000);
         }
         return () => clearInterval(interval);
-    }, [isOpen, step]);
+    }, [isOpen, step, onSuccess]);
 
     const handleConnect = async () => {
         setIsConnecting(true);

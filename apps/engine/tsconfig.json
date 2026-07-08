@@ -1,9 +1,12 @@
 {
   "extends": "../../packages/config-typescript/node.json",
   "compilerOptions": {
-    "allowJs": true,
     "rootDir": "src",
     "outDir": "dist",
+    "strict": false,
+    "noImplicitAny": false,
+    "strictNullChecks": false,
+    "strictPropertyInitialization": false,
     "paths": {
       "@flowra/types": ["../../packages/types/src/index.ts"]
     }

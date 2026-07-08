@@ -4,7 +4,7 @@ const { readSource, assertContains, assertFileExists } = require("../helpers/sou
 test("Sprint 0 SCRUM-23/SCRUM-24 foundation has reproducible project setup files", () => {
   [
     "package.json",
-    "package-lock.json",
+    "../../pnpm-lock.yaml",
     "next.config.mjs",
     "tsconfig.json",
     "eslint.config.mjs",

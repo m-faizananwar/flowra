@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { motion } from "framer-motion";
 import { Users } from "lucide-react";
 import { UserCircle } from "lucide-react";
@@ -41,7 +42,7 @@ export function TeamMembersWidget({ members, evaluations }: TeamMembersWidgetPro
                                 <div className="flex items-start justify-between gap-2">
                                     <div className="flex items-center gap-3 flex-1 min-w-0">
                                         {member.avatar_url ? (
-                                            <img src={member.avatar_url} alt="" className="w-10 h-10 rounded-lg object-cover ring-2 ring-white/10" />
+                                            <Image src={member.avatar_url} alt="" className="w-10 h-10 rounded-lg object-cover ring-2 ring-white/10" unoptimized />
                                         ) : (
                                             <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#24FF7C]/20 to-[#24FF7C]/5 border border-white/10 flex items-center justify-center">
                                                 <UserCircle className="w-6 h-6 text-white/30" />

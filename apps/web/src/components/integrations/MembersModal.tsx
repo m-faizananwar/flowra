@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import Image from 'next/image';
 import { 
   XCircle, Search, Users, Settings2, Trash2, 
   ChevronDown, CheckCircle2, Save, AlertCircle,
@@ -67,7 +68,7 @@ export default function MembersModal({ isOpen, onClose, integration }: MembersMo
     service: string;
   } | null>(null);
 
-  const fetchAllData = async () => {
+  const fetchAllData = useCallback(async () => {
     setLoading(true);
     try {
       const { data: masterRows } = await supabase
@@ -119,11 +120,11 @@ export default function MembersModal({ isOpen, onClose, integration }: MembersMo
     } finally {
       setLoading(false);
     }
-  };
+  }, [integration]);
 
   useEffect(() => {
     if (isOpen) Promise.resolve().then(fetchAllData);
-  }, [isOpen]);
+  }, [isOpen, fetchAllData]);
 
   const handleStartEdit = (member: any) => {
     setEditingId(member.id);
@@ -542,7 +543,7 @@ export default function MembersModal({ isOpen, onClose, integration }: MembersMo
                             <div className="flex items-center gap-5">
                               <div className="relative w-14 h-14 rounded-2xl overflow-hidden border border-white/10 bg-black/40 flex-shrink-0 shadow-2xl group-hover:border-violet-500/50 transition-colors">
                                 {member.avatar_url ? (
-                                  <img src={member.avatar_url} alt="" className="w-full h-full object-cover" />
+                                  <Image src={member.avatar_url} alt="" className="w-full h-full object-cover" unoptimized />
                                 ) : (
                                   <div className="w-full h-full flex items-center justify-center bg-violet-500/10">
                                     <Users className="w-7 h-7 text-violet-400/30" />
@@ -658,7 +659,7 @@ export default function MembersModal({ isOpen, onClose, integration }: MembersMo
                                               <div className="flex items-center gap-3">
                                                 <div className="w-7 h-7 rounded-lg bg-black/40 border border-white/10 flex items-center justify-center overflow-hidden">
                                                   {(profile.avatar_url || profile.metadata?.avatar_url) ? (
-                                                    <img src={profile.avatar_url || profile.metadata.avatar_url} alt="" className="w-full h-full object-cover" />
+                                                    <Image src={profile.avatar_url || profile.metadata.avatar_url} alt="" className="w-full h-full object-cover" unoptimized />
                                                   ) : (
                                                     <Users className="w-3.5 h-3.5 opacity-20" />
                                                   )}

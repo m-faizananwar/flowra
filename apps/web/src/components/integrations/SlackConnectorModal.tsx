@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
     X, 
@@ -38,7 +38,7 @@ export function SlackConnectorModal({ isOpen, onClose, onSuccess, initialData }:
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [isLoadingChannels, setIsLoadingChannels] = useState(false);
 
-    const fetchChannels = async (integrationId: string) => {
+    const fetchChannels = useCallback(async (integrationId: string) => {
         setIsLoadingChannels(true);
         try {
             const { data, error } = await supabase
@@ -48,7 +48,6 @@ export function SlackConnectorModal({ isOpen, onClose, onSuccess, initialData }:
             
             if (error) throw error;
 
-            // Fallback: If no channels in sub-table, check the main integration credentials
             if ((!data || data.length === 0) && initialData?.credentials) {
                 const creds = initialData.credentials;
                 const recovered: {id: string, name?: string}[] = [];
@@ -77,9 +76,8 @@ export function SlackConnectorModal({ isOpen, onClose, onSuccess, initialData }:
         } finally {
             setIsLoadingChannels(false);
         }
-    };
+    }, [initialData]);
 
-    // Reset state when modal opens
     useEffect(() => {
         if (isOpen) {
             if (initialData?.id) {
@@ -88,7 +86,7 @@ export function SlackConnectorModal({ isOpen, onClose, onSuccess, initialData }:
                 Promise.resolve().then(() => setChannels([]));
             }
         }
-    }, [isOpen, initialData]);
+    }, [isOpen, initialData, fetchChannels]);
 
     const addChannel = () => {
         if (!newChannelId) return;

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 
 // Micah style guarantees a sophisticated, premium SaaS look.
@@ -97,9 +98,10 @@ const TeamGallery = () => {
           onMouseLeave={() => setHovered(null)}
           href="#"
         >
-          <img 
+          <Image 
             src={member.avatar} 
             alt={member.name} 
+            unoptimized
           />
         </a>
       ))}

@@ -21,7 +21,7 @@ export function ExpenseChart({ className, data: liveData }: ExpenseChartProps) {
         setIsMounted(true);
     }, []);
 
-    const chartData = liveData || [];
+    const chartData = useMemo(() => liveData || [], [liveData]);
 
     const memberKeys = useMemo(() => {
         const keys = new Set<string>();

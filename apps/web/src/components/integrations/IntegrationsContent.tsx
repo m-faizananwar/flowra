@@ -14,6 +14,7 @@ import {
     Trash2
 } from "lucide-react";
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -229,7 +230,7 @@ export function IntegrationsContent() {
                                         "w-14 h-14 rounded-2xl flex items-center justify-center transition-colors border",
                                         isConnected ? "bg-black/[0.03] border-black/5" : "bg-white/[0.04] backdrop-blur-xl border-white/5 group-hover:bg-black/[0.03] group-hover:border-black/5"
                                     )}>
-                                        <img 
+                                        <Image 
                                             src={app.icon} 
                                             alt={app.name} 
                                             className={cn(
@@ -238,6 +239,7 @@ export function IntegrationsContent() {
                                                 // Invert white logos only when the background turns white
                                                 ["github"].includes(app.id) && (isConnected ? "invert" : "group-hover:invert")
                                             )} 
+                                            unoptimized
                                         />
                                     </div>
                                     <div className="flex items-center gap-3">
