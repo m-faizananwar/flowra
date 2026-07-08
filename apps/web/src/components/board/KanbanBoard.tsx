@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { AnimatedLoader } from "@/components/AnimatedLoader";
 import { 
     Clock, 
     CheckCircle2, 
@@ -9,8 +10,7 @@ import {
     RefreshCw,
     Zap,
     Layout,
-    Cpu,
-    Loader2
+    Cpu
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PageTransition, staggerContainer, staggerItem } from "@/components/animations/PageTransition";
@@ -168,12 +168,7 @@ export function KanbanBoard() {
     }, [sprintIssues, boardData]);
 
     if (isLoading) {
-        return (
-            <div className="h-full flex flex-col items-center justify-center gap-6">
-                <Loader2 className="w-12 h-12 text-[#24FF7C] animate-spin" />
-                <p className="text-[10px] font-black uppercase tracking-widest text-white/40 italic">Synchronizing Sprint Board...</p>
-            </div>
-        );
+        return <AnimatedLoader />;
     }
 
     return (

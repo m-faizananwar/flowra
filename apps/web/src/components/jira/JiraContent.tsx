@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { AnimatedLoader } from "@/components/AnimatedLoader";
 import { 
     Clock, 
     Play, 
@@ -206,18 +207,7 @@ export function JiraContent() {
     }, [approvals, pendingApprovals]);
 
     if (isLoading) {
-        return (
-            <div className="h-[calc(100vh-200px)] flex flex-col items-center justify-center gap-6">
-                <div className="relative">
-                    <Loader2 className="w-16 h-16 text-[#3B82F6] animate-spin stroke-[1.5px] opacity-20" />
-                    <Loader2 className="w-16 h-16 text-[#3B82F6] animate-spin stroke-[3px] absolute inset-0 [animation-duration:1.5s]" />
-                </div>
-                <div className="flex flex-col items-center gap-1">
-                    <p className="text-[10px] font-black uppercase tracking-[0.4em] text-white/40 italic">Syncing Workspaces.</p>
-                    <p className="text-xs font-black uppercase tracking-[0.2em] text-[#3B82F6]">One moment.</p>
-                </div>
-            </div>
-        );
+        return <AnimatedLoader />;
     }
 
     return (

@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import MetalButton from "@/components/MetalButton";
 import MetaballBackground from "@/components/MetaballBackground";
-import FlowLoader from "@/components/Loader";
+import { AnimatedLoader } from "@/components/AnimatedLoader";
 import { supabase } from "@/lib/supabase";
 
 /* ─── Shared slide section style ─── */
@@ -654,16 +654,20 @@ function Footer() {
 export default function HomePage() {
   const [isLoading, setIsLoading] = useState(true);
 
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 2000);
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <main style={{ width: "100%", minHeight: "100vh", background: "#000", overflowX: "hidden", position: "relative" }}>
       {isLoading && (
-        <FlowLoader
+        <AnimatedLoader
           key="entrance-loader"
-          word1="FLO"
-          word2="WRA"
-          onComplete={() => setIsLoading(false)}
+          fullScreen
         />
       )}
+      {!isLoading && <></>}
 
       <Navbar />
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { AnimatedLoader } from "@/components/AnimatedLoader";
 import { 
     ArrowRight, 
     Settings2, 
@@ -8,7 +9,6 @@ import {
     CheckCircle2,
     Zap,
     Search,
-    Loader2,
     MoreVertical,
     Users,
     Trash2
@@ -104,12 +104,7 @@ export function IntegrationsContent() {
     }, []);
 
     if (isLoading) {
-        return (
-            <div className="h-[calc(100vh-200px)] flex flex-col items-center justify-center gap-6">
-                <Loader2 className="w-12 h-12 text-[#8B5CF6] animate-spin opacity-20" />
-                <p className="text-[10px] font-black uppercase tracking-widest text-white/20">Establishing Connections...</p>
-            </div>
-        );
+        return <AnimatedLoader />;
     }
 
     return (

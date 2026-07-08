@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatedLoader } from "@/components/AnimatedLoader";
 import {
     AlertCircle,
     CheckCircle2,
@@ -392,18 +392,7 @@ export function PerformanceContent() {
 
     const [expandedMemberKey, setExpandedMemberKey] = useState<string | null>(null);
 
-    if (isLoading) return (
-        <div className="h-[calc(100vh-200px)] flex flex-col items-center justify-center gap-6">
-            <div className="relative">
-                <Loader2 className="w-16 h-16 text-[#24FF7C] animate-spin stroke-[1.5px] opacity-20" />
-                <Loader2 className="w-16 h-16 text-[#24FF7C] animate-spin stroke-[3px] absolute inset-0 [animation-duration:1.5s]" />
-            </div>
-            <div className="flex flex-col items-center gap-1">
-                <p className="text-[10px] font-black uppercase tracking-[0.4em] text-white/40 italic">Loading intelligence.</p>
-                <p className="text-xs font-black uppercase tracking-[0.2em] text-[#24FF7C]">One moment.</p>
-            </div>
-        </div>
-    );
+    if (isLoading) return <AnimatedLoader />;
 
     const globalMetrics = metrics.filter((m) => !m.role && !m.member_id);
     const roleGroups = metrics.reduce<Record<string, any[]>>((acc, m) => {

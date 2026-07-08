@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Loader2 } from "lucide-react";
+import { AnimatedLoader } from "@/components/AnimatedLoader";
 import { PageTransition, staggerContainer, staggerItem } from "@/components/animations/PageTransition";
 import { supabase } from "@/lib/supabase";
 import { TotalBalanceCard } from "./TotalBalanceCard";
@@ -44,18 +44,7 @@ export function DashboardContent() {
     }, []);
 
     if (isLoading) {
-        return (
-            <div className="h-[calc(100vh-200px)] flex flex-col items-center justify-center gap-6">
-                <div className="relative">
-                    <Loader2 className="w-16 h-16 text-[#24FF7C] animate-spin stroke-[1.5px] opacity-20" />
-                    <Loader2 className="w-16 h-16 text-[#24FF7C] animate-spin stroke-[3px] absolute inset-0 [animation-duration:1.5s]" />
-                </div>
-                <div className="flex flex-col items-center gap-1">
-                    <p className="text-[10px] font-black uppercase tracking-[0.4em] text-white/40 italic">Syncing workflow.</p>
-                    <p className="text-xs font-black uppercase tracking-[0.2em] text-[#24FF7C]">One moment.</p>
-                </div>
-            </div>
-        );
+        return <AnimatedLoader />;
     }
 
     return (
