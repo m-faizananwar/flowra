@@ -80,6 +80,9 @@ export function Sidebar({
     };
 
     useEffect(() => {
+        const cached = localStorage.getItem('flowra_avatar_url');
+        if (cached) setAvatarUrl(cached);
+
         const fetchUser = async () => {
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {
@@ -94,6 +97,7 @@ export function Sidebar({
                     .maybeSingle();
                 if (member?.avatar_url) {
                     setAvatarUrl(member.avatar_url);
+                    localStorage.setItem('flowra_avatar_url', member.avatar_url);
                 }
             }
         };

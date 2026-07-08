@@ -36,6 +36,9 @@ export default function SettingsPage() {
     const [memberId, setMemberId] = useState(null);
 
     useEffect(() => {
+        const cached = localStorage.getItem('flowra_avatar_url');
+        if (cached) setAvatarUrl(cached);
+
         const fetchUser = async () => {
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {
@@ -45,15 +48,21 @@ export default function SettingsPage() {
                     display_name: user.user_metadata?.display_name || "Lead Architect"
                 });
 
-                const { data: { session } } = await supabase.auth.getSession();
-                if (session) {
-                    const res = await fetch("/api/profile/avatar", {
-                        headers: { Authorization: `Bearer ${session.access_token}` },
-                    });
-                    const data = await res.json();
-                    if (res.ok) {
-                        setMemberId(data.member_id);
-                        setAvatarUrl(data.avatar_url);
+                const { data: member, error } = await supabase
+                    .from("members")
+                    .select("id, avatar_url")
+                    .eq("user_id", user.id)
+                    .maybeSingle();
+
+                if (error) {
+                    console.error("Failed to fetch member:", error);
+                }
+
+                if (member) {
+                    setMemberId(member.id);
+                    if (member.avatar_url) {
+                        setAvatarUrl(member.avatar_url);
+                        localStorage.setItem('flowra_avatar_url', member.avatar_url);
                     }
                 }
             }
@@ -103,6 +112,7 @@ export default function SettingsPage() {
             if (!res.ok) throw new Error(data.error);
 
             setAvatarUrl(data.avatar_url);
+            localStorage.setItem('flowra_avatar_url', data.avatar_url);
             setMemberId(data.member_id || memberId);
             setPreview(null);
             if (fileInput) fileInput.value = "";
@@ -128,6 +138,7 @@ export default function SettingsPage() {
             if (!res.ok) throw new Error(data.error);
 
             setAvatarUrl(null);
+            localStorage.removeItem('flowra_avatar_url');
         } catch (err) {
             alert(err.message);
         } finally {
