@@ -129,7 +129,7 @@ All infrastructure credentials are stored as GitHub Secrets; nothing sensitive i
 
 ## Acknowledgements
 
-Flowra is the product of a dedicated team whose time, care, and craftsmanship made it what it is. We are sincerely grateful for the effort each contributor invested in bringing this platform to life.
+Flowra is the product of a dedicated team whose time, care, and craftsmanship made it what it is. Sincerely grateful for the effort brought to the table by these great good guys.
 
 <div align="center">
 
@@ -138,7 +138,7 @@ Flowra is the product of a dedicated team whose time, care, and craftsmanship ma
 
 </div>
 
-Our thanks also go to everyone who offered feedback, testing, and encouragement along the way.
+Thanks also go to everyone who offered feedback, testing, and encouragement along the way.
 
 ## License
 
