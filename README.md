@@ -133,12 +133,12 @@ Flowra is the product of a dedicated team whose time, care, and craftsmanship ma
 
 <div align="center">
 
-| [<img src="https://github.com/m-faizananwar.png" width="90px;" alt=""/><br /><sub><b>Muhammad Faizan Anwar</b></sub>](https://github.com/m-faizananwar)<br/><sub>Project Lead</sub> | [<img src="https://github.com/Muhammad-Waleed381.png" width="90px;" alt=""/><br /><sub><b>Muhammad Waleed</b></sub>](https://github.com/Muhammad-Waleed381)<br/><sub>Core Developer</sub> | [<img src="https://github.com/furqanahmadbasra.png" width="90px;" alt=""/><br /><sub><b>Furqan Ahmad Basra</b></sub>](https://github.com/furqanahmadbasra)<br/><sub>Core Developer</sub> | [<img src="https://github.com/zarshamwaleed.png" width="90px;" alt=""/><br /><sub><b>Zarsham Waleed</b></sub>](https://github.com/zarshamwaleed)<br/><sub>Contributor</sub> |
-| :---: | :---: | :---: | :---: |
+| [<img src="https://github.com/Muhammad-Waleed381.png" width="90px;" alt=""/><br /><sub><b>Muhammad Waleed</b></sub>](https://github.com/Muhammad-Waleed381)<br/><sub>Core Developer</sub> | [<img src="https://github.com/furqanahmadbasra.png" width="90px;" alt=""/><br /><sub><b>Furqan Ahmad Basra</b></sub>](https://github.com/furqanahmadbasra)<br/><sub>Core Developer</sub> | [<img src="https://github.com/zarshamwaleed.png" width="90px;" alt=""/><br /><sub><b>Zarsham Waleed</b></sub>](https://github.com/zarshamwaleed)<br/><sub>Contributor</sub> |
+| :---: | :---: | :---: |
 
 </div>
 
-Our thanks also go to everyone who offered feedback, testing, and encouragement along the way. Flowra was developed by Group 3, Section C, as a Software Engineering course project — and carried through to a platform that runs in production.
+Our thanks also go to everyone who offered feedback, testing, and encouragement along the way.
 
 ## License
 
