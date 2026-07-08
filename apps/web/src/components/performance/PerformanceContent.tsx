@@ -1,5 +1,6 @@
 "use client";
 
+import { motion, AnimatePresence } from "framer-motion";
 import { AnimatedLoader } from "@/components/AnimatedLoader";
 import {
     AlertCircle,

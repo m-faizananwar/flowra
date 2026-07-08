@@ -82,21 +82,26 @@ export async function POST(request) {
     return NextResponse.json({ error: uploadError.message }, { status: 500 });
   }
 
-  const { data: { publicUrl } } = adminClient.storage
+  const { data: { publicUrl: rawPublicUrl } } = adminClient.storage
     .from('avatars')
     .getPublicUrl(fileName);
+
+  const publicUrl = `${rawPublicUrl}?v=${Date.now()}`;
 
   const { data: existing } = await adminClient
     .from('members')
     .select('id')
     .eq('user_id', user.id)
-    .maybeSingle();
+    .order('updated_at', { ascending: false })
+    .limit(1);
 
-  if (existing) {
+  const existingMember = existing?.[0];
+
+  if (existingMember) {
     await adminClient
       .from('members')
       .update({ avatar_url: publicUrl, updated_at: new Date().toISOString() })
-      .eq('id', existing.id);
+      .eq('id', existingMember.id);
   } else {
     await adminClient
       .from('members')

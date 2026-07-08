@@ -50,3 +50,7 @@ CREATE POLICY "Users can insert their own member record"
 ON public.members FOR INSERT
 TO authenticated
 WITH CHECK (auth.uid() = user_id);
+
+-- 7. Prevent duplicate member records per user
+CREATE UNIQUE INDEX IF NOT EXISTS idx_members_user_id_unique
+ON public.members (user_id);

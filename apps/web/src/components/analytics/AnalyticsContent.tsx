@@ -1,31 +1,164 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { AnimatedLoader } from "@/components/AnimatedLoader";
 import { PageTransition, staggerContainer, staggerItem } from "@/components/animations/PageTransition";
+import {
+  CheckCircle2, Clock, AlertCircle, RefreshCw, Zap, Target,
+  ChevronDown, LayoutGrid, List, TrendingUp, Activity,
+  Loader2, CircleDot, Circle
+} from "lucide-react";
 import { createClient } from "@supabase/supabase-js";
 import { ArchiveAndBacklog } from "../board/ArchiveAndBacklog";
 
-const STATUS_CONFIG: Record<string, { color: string; icon: React.ElementType; label: string }> = {
-  "Done":        { color: "text-emerald-400", icon: CheckCircle2, label: "Done" },
-  "In Progress": { color: "text-blue-400",    icon: Clock,        label: "In Progress" },
-  "To Do":       { color: "text-white/40",    icon: AlertCircle,  label: "To Do" },
-};
+// ─── Column config ────────────────────────────────────────────────────────────
+const COLUMNS = [
+  {
+    id: "todo",
+    label: "To Do",
+    icon: Circle,
+    accent: "text-white/50",
+    dotColor: "bg-white/30",
+    headerBg: "bg-white/[0.04]",
+    cardBorder: "border-white/[0.07]",
+    cardHover: "hover:border-white/20 hover:bg-white/[0.05]",
+    countBg: "bg-white/[0.06] text-white/40",
+    emptyIcon: "text-white/10",
+  },
+  {
+    id: "inprogress",
+    label: "In Progress",
+    icon: Clock,
+    accent: "text-blue-400",
+    dotColor: "bg-blue-400",
+    headerBg: "bg-blue-500/[0.07]",
+    cardBorder: "border-blue-500/[0.12]",
+    cardHover: "hover:border-blue-400/30 hover:bg-blue-500/[0.06]",
+    countBg: "bg-blue-500/10 text-blue-400/70",
+    emptyIcon: "text-blue-400/20",
+  },
+  {
+    id: "done",
+    label: "Done",
+    icon: CheckCircle2,
+    accent: "text-emerald-400",
+    dotColor: "bg-emerald-400",
+    headerBg: "bg-emerald-500/[0.07]",
+    cardBorder: "border-emerald-500/[0.12]",
+    cardHover: "hover:border-emerald-400/30 hover:bg-emerald-500/[0.06]",
+    countBg: "bg-emerald-500/10 text-emerald-400/70",
+    emptyIcon: "text-emerald-400/20",
+  },
+];
 
-function StatusBadge({ status }: { status: string }) {
-  const cfg = STATUS_CONFIG[status] || { color: "text-white/40", icon: AlertCircle, label: status };
-  const Icon = cfg.icon;
+// ─── Issue card ───────────────────────────────────────────────────────────────
+function IssueCard({ item, col, index }: { item: any; col: typeof COLUMNS[0]; index: number }) {
+  const Icon = col.icon;
   return (
-    <span className={`flex items-center gap-1 text-[10px] font-black uppercase tracking-widest ${cfg.color}`}>
-      <Icon className="w-3 h-3" /> {cfg.label}
-    </span>
+    <motion.div
+      layoutId={item.issue_key}
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.04, type: "spring", stiffness: 300, damping: 28 }}
+      whileHover={{ y: -2, scale: 1.01 }}
+      className={`p-4 rounded-2xl bg-white/[0.03] border ${col.cardBorder} ${col.cardHover} transition-all duration-200 cursor-pointer group`}
+    >
+      {/* Top row */}
+      <div className="flex items-center justify-between mb-2.5">
+        <span className={`text-[10px] font-semibold font-mono ${col.accent} opacity-70`}>
+          {item.issue_key}
+        </span>
+        {item.assignee_name && (
+          <div className={`w-5 h-5 rounded-full border flex items-center justify-center text-[7px] font-black uppercase ${col.countBg} border-current/20 shrink-0`}>
+            {item.assignee_name.charAt(0)}
+          </div>
+        )}
+      </div>
+
+      {/* Summary */}
+      <p className="text-[12px] text-white/70 font-medium leading-snug group-hover:text-white/90 transition-colors line-clamp-2">
+        {item.summary}
+      </p>
+
+      {/* Footer */}
+      <div className="mt-3 flex items-center gap-1.5">
+        <div className={`w-1.5 h-1.5 rounded-full ${col.dotColor} opacity-70`} />
+        <span className={`text-[10px] font-medium ${col.accent} opacity-60`}>
+          {item.status}
+        </span>
+      </div>
+    </motion.div>
   );
 }
 
+// ─── Board Column ─────────────────────────────────────────────────────────────
+function BoardColumn({ col, items }: { col: typeof COLUMNS[0]; items: any[] }) {
+  const Icon = col.icon;
+  return (
+    <motion.div
+      variants={staggerItem}
+      className="flex flex-col rounded-[1.75rem] bg-white/[0.02] border border-white/[0.06] overflow-hidden min-h-[440px]"
+    >
+      {/* Column Header */}
+      <div className={`flex items-center justify-between px-5 py-4 ${col.headerBg} border-b border-white/[0.05]`}>
+        <div className="flex items-center gap-2.5">
+          <div className={`w-2 h-2 rounded-full ${col.dotColor}`} />
+          <h3 className={`text-[12px] font-bold tracking-wide ${col.accent}`}>
+            {col.label}
+          </h3>
+        </div>
+        <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${col.countBg}`}>
+          {items.length}
+        </span>
+      </div>
+
+      {/* Cards */}
+      <div className="flex-1 p-4 space-y-3 overflow-y-auto custom-scrollbar scrollbar-none">
+        {items.length > 0 ? (
+          items.map((item, i) => <IssueCard key={item.issue_key} item={item} col={col} index={i} />)
+        ) : (
+          <div className="flex flex-col items-center justify-center h-full py-16 gap-3 opacity-30">
+            <Icon className={`w-8 h-8 ${col.emptyIcon}`} />
+            <p className="text-xs font-semibold text-white/30">Empty</p>
+          </div>
+        )}
+      </div>
+    </motion.div>
+  );
+}
+
+// ─── KPI Card ─────────────────────────────────────────────────────────────────
+function KpiCard({ label, value, sub, icon: Icon, color, bgColor, borderColor }: any) {
+  return (
+    <motion.div
+      variants={staggerItem}
+      whileHover={{ y: -3, scale: 1.01 }}
+      transition={{ type: "spring", stiffness: 350, damping: 25 }}
+      className={`relative overflow-hidden rounded-2xl border ${borderColor} p-5 flex flex-col gap-3`}
+      style={{ background: bgColor }}
+    >
+      <div className={`w-9 h-9 rounded-xl border ${borderColor} flex items-center justify-center`}>
+        <Icon className={`w-4.5 h-4.5 ${color}`} />
+      </div>
+      <div>
+        <p className="text-xs font-semibold text-white/40 mb-1">{label}</p>
+        <p className={`text-3xl font-bold font-[family-name:var(--font-outfit)] tracking-tight ${color}`}>
+          {value}
+        </p>
+        {sub && <p className="text-[10px] text-white/25 mt-1 font-bold">{sub}</p>}
+      </div>
+      {/* subtle glow */}
+      <div className={`absolute -bottom-6 -right-6 w-24 h-24 rounded-full ${color.replace("text-", "bg-")} opacity-[0.08] blur-2xl pointer-events-none`} />
+    </motion.div>
+  );
+}
+
+// ─── Main Component ───────────────────────────────────────────────────────────
 export function AnalyticsContent() {
   const [data, setData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSyncing, setIsSyncing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"list" | "board">("board");
   const [isBoardExpanded, setIsBoardExpanded] = useState(true);
@@ -40,10 +173,9 @@ export function AnalyticsContent() {
       );
       const { data: { session } } = await supabase.auth.getSession();
       const token = session?.access_token;
-
-      const res = await fetch('/api/sprints/data', {
+      const res = await fetch("/api/sprints/data", {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
-        cache: 'no-store'
+        cache: "no-store",
       });
       if (!res.ok) throw new Error(await res.text());
       setData(await res.json());
@@ -56,55 +188,49 @@ export function AnalyticsContent() {
 
   useEffect(() => {
     Promise.resolve().then(fetchData);
-
-    // Set up Realtime listener for live updates
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     );
-
     const channel = supabase
-      .channel('jira-live-updates')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'jira_issues' },
-        () => {
-          console.log('Realtime update detected: Syncing dashboard...');
-          fetchData();
-        }
-      )
+      .channel("jira-live-updates")
+      .on("postgres_changes", { event: "*", schema: "public", table: "jira_issues" }, fetchData)
       .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    return () => { supabase.removeChannel(channel); };
   }, []);
 
-  if (isLoading) {
-    return <AnimatedLoader />;
-  }
+  const handleManualRefresh = async () => {
+    setIsSyncing(true);
+    try {
+      const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      );
+      const { data: { session } } = await supabase.auth.getSession();
+      await fetch("/api/analysis/run", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${session?.access_token}` },
+        body: JSON.stringify({ analysis_type: "jira", sync_only: true }),
+      });
+      await fetchData();
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  if (isLoading) return <AnimatedLoader />;
 
   const sprint = data?.activeSprint;
   const metrics = sprint?.sprint_metrics?.[sprint.sprint_metrics.length - 1];
   const issues: any[] = data?.jiraIssues || [];
   const pastSprints: any[] = data?.pastSprints || [];
 
-  const hasNoData = !sprint;
-
-  // Helper: Bucket issues into board columns
   const getBoardData = () => {
-    const columns = {
-      todo: [] as any[],
-      inprogress: [] as any[],
-      done: [] as any[]
-    };
-
+    const columns = { todo: [] as any[], inprogress: [] as any[], done: [] as any[] };
     issues.forEach(issue => {
-      // ONLY show issues in the live board if they belong to the active sprint
-      if (sprint?.jira_sprint_id && issue.sprint_jira_id !== sprint.jira_sprint_id) {
-        return;
-      }
-
+      if (sprint?.jira_sprint_id && issue.sprint_jira_id !== sprint.jira_sprint_id) return;
       const s = (issue.status || "").toLowerCase();
       if (["done", "closed", "resolved", "completed"].includes(s)) {
         columns.done.push(issue);
@@ -114,238 +240,275 @@ export function AnalyticsContent() {
         columns.todo.push(issue);
       }
     });
-
     return columns;
   };
 
   const boardData = getBoardData();
-
-  const handleManualRefresh = async () => {
-    setIsLoading(true);
-    try {
-      const supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-      );
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      // Trigger Fast Sync (No AI)
-      await fetch('/api/analysis/run', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session?.access_token}`
-        },
-        body: JSON.stringify({ analysis_type: 'jira', sync_only: true })
-      });
-      
-      // Now fetch the updated data
-      await fetchData();
-    } catch (err: any) {
-      setError(err.message);
-      setIsLoading(false);
-    }
-  };
+  const maxVelocity = Math.max(...pastSprints.map((s: any) => s.sprint_metrics?.[s.sprint_metrics.length - 1]?.velocity ?? 0), 1);
 
   return (
     <PageTransition pageTitle="Sprint Analytics">
-      <motion.div variants={staggerContainer} initial="hidden" animate="show" className="space-y-8 pb-12">
+      <motion.div variants={staggerContainer} initial="hidden" animate="show" className="space-y-8 pb-16">
 
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-2">
+        {/* ── Header ─────────────────────────────────────────────────────── */}
+        <motion.div variants={staggerItem} className="flex flex-col md:flex-row md:items-end justify-between gap-5">
           <div>
-            <h1 className="text-4xl font-black text-white font-[family-name:var(--font-outfit)] tracking-tight italic">
-              SPRINT ANALYTICS
+            <h1 className="text-2xl font-bold text-white font-[family-name:var(--font-outfit)] tracking-tight">
+              Sprint Analytics
             </h1>
-            <p className="text-[11px] font-black text-white/30 uppercase tracking-[0.3em] mt-1">
-              {sprint ? `Active: ${sprint.name} · ${sprint.project_key}` : 'No active sprint found'}
+            <p className="text-xs font-medium text-white/35 mt-1.5">
+              {sprint ? `Active · ${sprint.name} · ${sprint.project_key}` : "No active sprint"}
             </p>
           </div>
-          <div className="flex items-center gap-3">
-            {/* View Toggle */}
-            <div className="flex items-center bg-white/5 rounded-xl p-1 border border-white/5">
-              <button 
-                onClick={() => setViewMode("list")}
-                className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all ${viewMode === "list" ? "bg-white/10 text-white" : "text-white/30 hover:text-white/60"}`}
-              >
-                List
-              </button>
-              <button 
-                onClick={() => setViewMode("board")}
-                className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all ${viewMode === "board" ? "bg-white/10 text-white" : "text-white/30 hover:text-white/60"}`}
-              >
-                Board
-              </button>
+
+          <div className="flex items-center gap-2.5">
+            {/* View toggle */}
+            <div className="flex items-center gap-1 p-1 rounded-xl bg-white/[0.05] border border-white/[0.07]">
+              {([["board", LayoutGrid], ["list", List]] as const).map(([mode, Icon]) => (
+                <motion.button
+                  key={mode}
+                  onClick={() => setViewMode(mode)}
+                  whileTap={{ scale: 0.94 }}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                    viewMode === mode
+                      ? "bg-white/10 text-white shadow-inner"
+                      : "text-white/30 hover:text-white/60"
+                  }`}
+                >
+                  <Icon className="w-3.5 h-3.5" />
+                  {mode}
+                </motion.button>
+              ))}
             </div>
-            <button 
-              onClick={handleManualRefresh} 
-              disabled={isLoading}
-              className="flex items-center gap-2.5 px-6 h-12 rounded-2xl bg-[#24FF7C] text-black text-[11px] font-black uppercase tracking-widest hover:brightness-110 transition-all shadow-[0_4px_20px_rgba(36,255,124,0.15)] active:scale-95 disabled:opacity-50"
+
+            {/* Refresh */}
+            <motion.button
+              onClick={handleManualRefresh}
+              disabled={isSyncing || isLoading}
+              whileHover={{ scale: 1.03, y: -1 }}
+              whileTap={{ scale: 0.96 }}
+              transition={{ type: "spring", stiffness: 400, damping: 20 }}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white/[0.06] border border-white/10 text-white/60 text-xs font-semibold hover:bg-white/10 hover:text-white/80 transition-all disabled:opacity-40"
             >
-              {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />} 
-              {isLoading ? "Syncing..." : "Refresh"}
-            </button>
+              <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? "animate-spin" : ""}`} />
+              {isSyncing ? "Syncing…" : "Refresh"}
+            </motion.button>
           </div>
-        </div>
+        </motion.div>
 
-        {/* No Data Banner */}
-        {hasNoData && (
-          <motion.div variants={staggerItem} className="p-8 rounded-[2rem] bg-[#24FF7C]/5 border border-[#24FF7C]/10 text-center">
-            <Zap className="w-10 h-10 text-[#24FF7C]/40 mx-auto mb-3" />
-            <p className="text-white/60 font-bold">No active sprint data yet.</p>
-            <p className="text-white/30 text-sm mt-1">Click &quot;Sync Jira Now&quot; on the Jira page to pull your first sprint.</p>
+        {/* ── No Data ────────────────────────────────────────────────────── */}
+        {!sprint && (
+          <motion.div variants={staggerItem} className="flex flex-col items-center justify-center py-20 gap-4 rounded-2xl bg-white/[0.02] border border-white/[0.06]">
+            <div className="w-14 h-14 rounded-2xl bg-[#24FF7C]/10 border border-[#24FF7C]/20 flex items-center justify-center">
+              <Zap className="w-7 h-7 text-[#24FF7C]/50" />
+            </div>
+            <p className="text-white/50 font-bold text-sm">No active sprint found</p>
+            <p className="text-white/25 text-xs text-center max-w-xs">
+              Sync Jira on the Jira page to pull your first sprint into Flowra.
+            </p>
           </motion.div>
         )}
 
-        {/* KPI Cards */}
+        {/* ── KPI Cards ──────────────────────────────────────────────────── */}
         {metrics && (
-          <motion.div variants={staggerItem} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {[
-              { label: "Velocity",   value: `${metrics.velocity}%`,       icon: Zap,    color: "text-blue-400",    border: "border-blue-500/20",    grad: "from-blue-500/20 to-blue-500/5" },
-              { label: "Done",       value: `${metrics.completed_issues}/${metrics.total_issues}`, icon: CheckCircle2, color: "text-purple-400", border: "border-purple-500/20", grad: "from-purple-500/20 to-purple-500/5" },
-            ].map((kpi) => {
-              const Icon = kpi.icon;
-              return (
-                <div key={kpi.label} className={`rounded-[2rem] bg-gradient-to-br ${kpi.grad} border border-white/5 p-6`}>
-                  <div className={`w-10 h-10 rounded-xl bg-white/5 border ${kpi.border} flex items-center justify-center mb-4`}>
-                    <Icon className={`w-5 h-5 ${kpi.color}`} />
-                  </div>
-                  <p className="text-white/40 text-[10px] font-black uppercase tracking-[0.2em] mb-1">{kpi.label}</p>
-                  <p className="text-3xl font-black text-white font-[family-name:var(--font-outfit)] tracking-tight italic">{kpi.value}</p>
-                </div>
-              );
-            })}
+          <motion.div variants={staggerItem} className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <KpiCard
+              label="Velocity"
+              value={`${metrics.velocity}%`}
+              sub="Sprint completion rate"
+              icon={TrendingUp}
+              color="text-blue-400"
+              bgColor="rgba(59,130,246,0.04)"
+              borderColor="border-blue-500/15"
+            />
+            <KpiCard
+              label="Completed"
+              value={metrics.completed_issues}
+              sub={`of ${metrics.total_issues} issues`}
+              icon={CheckCircle2}
+              color="text-emerald-400"
+              bgColor="rgba(16,185,129,0.04)"
+              borderColor="border-emerald-500/15"
+            />
+            <KpiCard
+              label="In Progress"
+              value={boardData.inprogress.length}
+              sub="Active issues"
+              icon={Activity}
+              color="text-amber-400"
+              bgColor="rgba(245,158,11,0.04)"
+              borderColor="border-amber-500/15"
+            />
+            <KpiCard
+              label="Backlog"
+              value={boardData.todo.length}
+              sub="Pending issues"
+              icon={CircleDot}
+              color="text-white/50"
+              bgColor="rgba(255,255,255,0.02)"
+              borderColor="border-white/8"
+            />
           </motion.div>
         )}
 
-        {/* Dynamic Content: List vs Board */}
+        {/* ── Live Board ─────────────────────────────────────────────────── */}
         {issues.length > 0 && (
           <motion.div variants={staggerItem} className="space-y-4">
-            {/* Board Accordion Toggle */}
-            <button 
+            {/* Accordion Toggle */}
+            <motion.button
               onClick={() => setIsBoardExpanded(!isBoardExpanded)}
-              className="flex items-center gap-3 w-full p-4 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/[0.08] transition-all group"
+              whileHover={{ scale: 1.005 }}
+              whileTap={{ scale: 0.997 }}
+              className="flex items-center gap-3 w-full px-5 py-3.5 rounded-xl bg-white/[0.03] border border-white/[0.07] hover:bg-white/[0.05] hover:border-white/10 transition-all group"
             >
-              <div className={`transition-transform duration-300 ${isBoardExpanded ? "rotate-180" : ""}`}>
-                <RefreshCw className="w-4 h-4 text-[#24FF7C]/60" />
-              </div>
-              <span className="text-[11px] font-black uppercase tracking-widest text-white/70">Live Sprint Board</span>
-              <div className="flex-1 h-[1px] bg-white/10" />
-              <span className="text-[10px] font-black text-white/30 uppercase tracking-tighter italic">
-                {isBoardExpanded ? "Click to Collapse" : "Click to Expand"}
+              <div className="w-2 h-2 rounded-full bg-[#24FF7C] shadow-[0_0_8px_rgba(36,255,124,0.6)]" />
+              <span className="text-xs font-semibold text-white/60 group-hover:text-white/80 transition-colors">
+                Live Sprint Board
               </span>
-            </button>
+              <span className="text-[10px] font-bold text-white/20 ml-1">
+                ({issues.length} issues)
+              </span>
+              <div className="flex-1 h-px bg-white/[0.06]" />
+              <motion.div
+                animate={{ rotate: isBoardExpanded ? 180 : 0 }}
+                transition={{ type: "spring", stiffness: 350, damping: 28 }}
+              >
+                <ChevronDown className="w-4 h-4 text-white/25" />
+              </motion.div>
+            </motion.button>
 
-            {isBoardExpanded && (
-              <div className="mt-4">
-                {viewMode === "list" ? (
-                  <div className="p-6 rounded-[2rem] bg-white/[0.03] border border-white/5">
-                    <p className="text-[10px] font-black uppercase text-white/30 tracking-[0.3em] mb-4">Sprint Issues ({issues.length})</p>
-                    <div className="space-y-2">
-                      {issues.map((issue: any) => (
-                        <div key={issue.issue_key} className="flex items-center justify-between p-3 rounded-xl bg-white/[0.02] border border-white/5 hover:border-white/10 transition-all">
-                          <div className="flex items-center gap-3">
-                            <span className="text-[10px] font-black text-[#24FF7C] font-mono">{issue.issue_key}</span>
-                            <span className="text-sm text-white/70 font-medium truncate max-w-xs">{issue.summary}</span>
-                          </div>
-                          <div className="flex items-center gap-4 shrink-0">
-                            {issue.assignee_name && (
-                              <span className="text-[10px] text-white/30 hidden sm:block">{issue.assignee_name}</span>
-                            )}
-                            <StatusBadge status={issue.status} />
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    {/* Columns */}
-                    {[
-                      { id: "todo",       label: "To Do",       items: boardData.todo,       color: "bg-white/5" },
-                      { id: "inprogress", label: "In Progress", items: boardData.inprogress, color: "bg-blue-500/5" },
-                      { id: "done",       label: "Done",       items: boardData.done,       color: "bg-emerald-500/5" }
-                    ].map((col) => (
-                      <div key={col.id} className={`flex flex-col gap-4 p-5 rounded-[2.5rem] ${col.color} border border-white/5 min-h-[400px]`}>
-                        <div className="flex items-center justify-between px-3 mb-2">
-                          <h3 className="text-[11px] font-black uppercase tracking-widest text-white/60 italic">{col.label}</h3>
-                          <span className="px-2.5 py-0.5 rounded-full bg-white/5 border border-white/10 text-[10px] font-black text-white/40">
-                            {col.items.length}
-                          </span>
-                        </div>
-                        
-                        <div className="space-y-3">
-                          {col.items.map((item: any) => (
-                            <motion.div 
-                              layoutId={item.issue_key}
-                              key={item.issue_key}
-                              className="p-4 rounded-2xl bg-white/[0.03] border border-white/5 hover:border-white/20 hover:bg-white/[0.05] transition-all cursor-pointer group"
+            <AnimatePresence>
+              {isBoardExpanded && (
+                <motion.div
+                  key="board-content"
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                  className="overflow-hidden"
+                >
+                  {viewMode === "list" ? (
+                    /* ── List View ──────────────────────────────────────── */
+                    <motion.div
+                      variants={staggerContainer}
+                      initial="hidden"
+                      animate="show"
+                      className="rounded-2xl bg-white/[0.02] border border-white/[0.07] overflow-hidden"
+                    >
+                      <div className="px-5 py-3 border-b border-white/[0.05] bg-white/[0.02]">
+                        <p className="text-xs font-semibold text-white/35">
+                          All Issues · {issues.length}
+                        </p>
+                      </div>
+                      <div className="divide-y divide-white/[0.04]">
+                        {issues.map((issue: any, i: number) => {
+                          const s = (issue.status || "").toLowerCase();
+                          const isDone = ["done", "closed", "resolved", "completed"].includes(s);
+                          const isInProg = ["in progress", "under review", "development", "testing", "blocked"].some(kw => s.includes(kw));
+                          const col = isDone ? COLUMNS[2] : isInProg ? COLUMNS[1] : COLUMNS[0];
+                          return (
+                            <motion.div
+                              key={issue.issue_key}
+                              variants={staggerItem}
+                              whileHover={{ backgroundColor: "rgba(255,255,255,0.025)" }}
+                              className="flex items-center justify-between px-5 py-3.5 transition-colors group"
                             >
-                              <div className="flex items-center justify-between mb-2">
-                                <span className="text-[10px] font-black text-[#24FF7C] tracking-tighter italic">{item.issue_key}</span>
-                                {item.assignee_name && (
-                                  <div className="w-5 h-5 rounded-full bg-[#24FF7C]/20 border border-[#24FF7C]/40 flex items-center justify-center text-[8px] font-black text-[#24FF7C] uppercase">
-                                    {item.assignee_name.charAt(0)}
-                                  </div>
-                                )}
-                              </div>
-                              <p className="text-xs text-white/80 font-medium leading-relaxed group-hover:text-white transition-colors">
-                                {item.summary}
-                              </p>
-                              <div className="mt-4 flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity">
-                                <span className="text-[9px] font-black text-white/20 uppercase tracking-widest">
-                                  {item.status}
+                              <div className="flex items-center gap-3 min-w-0">
+                                <span className={`text-[10px] font-black font-mono shrink-0 ${col.accent}`}>
+                                  {issue.issue_key}
                                 </span>
-                                <Zap className="w-3 h-3 text-[#24FF7C]/30" />
+                                <span className="text-sm text-white/60 font-medium truncate group-hover:text-white/80 transition-colors">
+                                  {issue.summary}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-4 shrink-0 ml-4">
+                                {issue.assignee_name && (
+                                  <span className="text-[10px] text-white/25 hidden sm:block">{issue.assignee_name}</span>
+                                )}
+                                <div className="flex items-center gap-1.5">
+                                  <div className={`w-1.5 h-1.5 rounded-full ${col.dotColor}`} />
+                                  <span className={`text-[10px] font-medium ${col.accent} opacity-70`}>
+                                    {issue.status}
+                                  </span>
+                                </div>
                               </div>
                             </motion.div>
-                          ))}
-                          {col.items.length === 0 && (
-                            <div className="flex flex-col items-center justify-center py-12 border-2 border-dashed border-white/5 rounded-3xl opacity-20">
-                              <Target className="w-8 h-8 mb-2" />
-                              <p className="text-[10px] font-black uppercase tracking-widest text-center">Empty</p>
-                            </div>
-                          )}
-                        </div>
+                          );
+                        })}
                       </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
+                    </motion.div>
+                  ) : (
+                    /* ── Board View ─────────────────────────────────────── */
+                    <motion.div
+                      variants={staggerContainer}
+                      initial="hidden"
+                      animate="show"
+                      className="grid grid-cols-1 lg:grid-cols-3 gap-4"
+                    >
+                      {COLUMNS.map(col => (
+                        <BoardColumn
+                          key={col.id}
+                          col={col}
+                          items={(boardData as any)[col.id]}
+                        />
+                      ))}
+                    </motion.div>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </motion.div>
         )}
 
-        {/* Inventory & Roadmap (History + Backlog) Section */}
+        {/* ── Inventory & Roadmap ────────────────────────────────────────── */}
         <ArchiveAndBacklog issues={issues} />
 
-        {/* Velocity History */}
+        {/* ── Past Sprint Velocity ───────────────────────────────────────── */}
         {pastSprints.length > 0 && (
-          <motion.div variants={staggerItem} className="p-6 rounded-[2rem] bg-white/[0.03] border border-white/5">
-            <p className="text-[10px] font-black uppercase text-white/30 tracking-[0.3em] mb-4">Past Sprint Velocity</p>
-            <div className="space-y-2">
-              {pastSprints.map((s: any) => {
+          <motion.div variants={staggerItem} className="rounded-2xl bg-white/[0.02] border border-white/[0.07] overflow-hidden">
+            <div className="px-6 py-4 border-b border-white/[0.05] bg-white/[0.02] flex items-center gap-3">
+              <TrendingUp className="w-3.5 h-3.5 text-[#24FF7C]/60" />
+              <p className="text-xs font-semibold text-white/40">
+                Past Sprint Velocity
+              </p>
+            </div>
+            <div className="p-6 space-y-4">
+              {pastSprints.map((s: any, i: number) => {
                 const m = s.sprint_metrics?.[s.sprint_metrics.length - 1];
                 const v = m?.velocity ?? 0;
+                const pct = Math.round((v / maxVelocity) * 100);
                 return (
-                  <div key={s.jira_sprint_id} className="flex items-center gap-4">
-                    <span className="text-[10px] text-white/40 w-24 shrink-0 truncate">{s.name}</span>
-                    <div className="flex-1 h-2 rounded-full bg-white/5">
-                      <div className="h-2 rounded-full bg-[#24FF7C] transition-all" style={{ width: `${v}%` }} />
+                  <motion.div
+                    key={s.jira_sprint_id}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: i * 0.06 }}
+                    className="flex items-center gap-4"
+                  >
+                    <span className="text-[10px] text-white/35 w-28 shrink-0 truncate font-bold">{s.name}</span>
+                    <div className="flex-1 h-1.5 rounded-full bg-white/[0.06] overflow-hidden">
+                      <motion.div
+                        className="h-full rounded-full bg-gradient-to-r from-[#24FF7C] to-[#3B82F6]"
+                        initial={{ width: 0 }}
+                        animate={{ width: `${pct}%` }}
+                        transition={{ delay: i * 0.06 + 0.2, duration: 0.7, ease: "easeOut" }}
+                      />
                     </div>
-                    <span className="text-[10px] font-black text-[#24FF7C] w-10 text-right">{v}%</span>
-                  </div>
+                    <span className="text-[10px] font-black text-[#24FF7C] w-9 text-right">{v}%</span>
+                  </motion.div>
                 );
               })}
             </div>
           </motion.div>
         )}
 
+        {/* ── Error ─────────────────────────────────────────────────────── */}
         {error && (
-          <motion.div variants={staggerItem} className="p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-bold">
-            Error loading sprint data: {error}
+          <motion.div variants={staggerItem} className="p-4 rounded-xl bg-red-500/8 border border-red-500/20 text-red-400/80 text-sm font-bold">
+            {error}
           </motion.div>
         )}
+
       </motion.div>
     </PageTransition>
   );
