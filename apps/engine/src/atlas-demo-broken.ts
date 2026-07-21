@@ -4,4 +4,4 @@
 // the repair unambiguous.
 //
 // SAFE TO DELETE. Nothing imports this file. Branch-only; never merge.
-export const atlasDemoBroken: number = "this is not a number";
+export const atlasDemoBroken: number = 0;
